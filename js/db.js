@@ -1,14 +1,13 @@
-/* db.js — localStorage database v2 */
+/* db.js — API backend + cache localStorage v3 */
+const API_BASE    = 'http://localhost:3000/api';
 const DB_KEY      = 'gp_products';
 const ORDERS_KEY  = 'gp_orders';
-const DB_VERSION  = 2;
+const DB_VERSION  = 3;
 const VER_KEY     = 'gp_db_version';
 
-/* ---- MIGRATION ---- */
 function dbMigrate(){
-  const ver = +( localStorage.getItem(VER_KEY)||0);
+  const ver = +(localStorage.getItem(VER_KEY)||0);
   if(ver < DB_VERSION){
-    // v1->v2: ensure every product has stockN + inStock fields
     try{
       const raw = localStorage.getItem(DB_KEY);
       if(raw){
@@ -24,7 +23,20 @@ function dbMigrate(){
   }
 }
 
-/* ---- PRODUCTS ---- */
+/* Chargement depuis l'API dès l'ouverture de la page */
+(function syncFromAPI(){
+  fetch(API_BASE + '/products')
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(products => {
+      const normalized = products.map(p => ({...p, desc: p.description}));
+      localStorage.setItem(DB_KEY, JSON.stringify(normalized));
+      localStorage.setItem(VER_KEY, DB_VERSION);
+      window.dispatchEvent(new Event('gp-db-changed'));
+      console.log('[db] ' + normalized.length + ' produits chargés depuis l\'API');
+    })
+    .catch(err => console.warn('[db] API indisponible, cache local utilisé', err));
+})();
+
 function dbGet(){
   dbMigrate();
   try{
@@ -35,14 +47,11 @@ function dbGet(){
   localStorage.setItem(DB_KEY, JSON.stringify(seed));
   return seed;
 }
-
 function dbSave(products){
   localStorage.setItem(DB_KEY, JSON.stringify(products));
   window.dispatchEvent(new Event('gp-db-changed'));
 }
-
 function dbGetProduct(id){ return dbGet().find(p=>p.id===id)||null; }
-
 function dbValidate(p){
   const errors = [];
   if(!p.id||typeof p.id!=='string'||!/^[a-z0-9-]+$/.test(p.id)) errors.push("L'id doit être en minuscules, chiffres et tirets.");
@@ -52,7 +61,6 @@ function dbValidate(p){
   if(!Array.isArray(p.colors)||p.colors.length===0) errors.push('Au moins un coloris est requis.');
   return errors;
 }
-
 function dbUpsert(product){
   const errors = dbValidate(product);
   if(errors.length>0) return {ok:false, errors};
@@ -62,18 +70,12 @@ function dbUpsert(product){
   dbSave(products);
   return {ok:true};
 }
-
-function dbDelete(id){
-  dbSave(dbGet().filter(p=>p.id!==id));
-}
-
+function dbDelete(id){ dbSave(dbGet().filter(p=>p.id!==id)); }
 function dbReset(){
   localStorage.removeItem(DB_KEY);
   localStorage.setItem(VER_KEY, DB_VERSION);
   return dbGet();
 }
-
-/* ---- STOCK ---- */
 function dbDecrementStock(cartLines){
   const products = dbGet();
   cartLines.forEach(line=>{
@@ -84,33 +86,22 @@ function dbDecrementStock(cartLines){
   });
   dbSave(products);
 }
-
-/* ---- ORDERS ---- */
 function dbGetOrders(){
   try{ return JSON.parse(localStorage.getItem(ORDERS_KEY))||[]; }catch(e){ return []; }
 }
-
 function dbSaveOrder(order){
   const orders = dbGetOrders();
   orders.unshift(order);
   localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
 }
-
-/* ---- EXPORT / IMPORT ---- */
 function dbExport(){
-  const data = {
-    version: DB_VERSION,
-    exportedAt: new Date().toISOString(),
-    products: dbGet(),
-    orders: dbGetOrders()
-  };
+  const data = { version: DB_VERSION, exportedAt: new Date().toISOString(), products: dbGet(), orders: dbGetOrders() };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'gearplay-db-' + new Date().toISOString().slice(0,10) + '.json';
   a.click();
 }
-
 function dbImport(file, onDone){
   const reader = new FileReader();
   reader.onload = e=>{
