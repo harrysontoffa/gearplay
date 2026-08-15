@@ -1,5 +1,7 @@
 /* db.js — API backend + cache localStorage v3 */
-const API_BASE    = 'http://localhost:3000/api';
+const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:3000/api'
+  : 'https://gearplay-backend-production.up.railway.app/api';
 const DB_KEY      = 'gp_products';
 const ORDERS_KEY  = 'gp_orders';
 const DB_VERSION  = 3;
@@ -112,13 +114,37 @@ function dbDecrementStock(cartLines){
   });
   dbSave(products);
 }
+/* ---- ORDERS ---- */
 function dbGetOrders(){
   try{ return JSON.parse(localStorage.getItem(ORDERS_KEY))||[]; }catch(e){ return []; }
 }
+
 function dbSaveOrder(order){
+  // 1. Sauvegarde locale immédiate (pour affichage instantané dans compte.html)
   const orders = dbGetOrders();
   orders.unshift(order);
   localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+
+  // 2. Envoi vers l'API backend (persistance en base)
+  fetch(API_BASE + '/orders', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(order)
+  })
+  .then(r => r.ok ? r.json() : r.text().then(t => Promise.reject(t)))
+  .then(saved => console.log('[db] Commande enregistrée en base :', saved.id))
+  .catch(err => console.warn('[db] Erreur envoi commande à l\'API :', err));
+}
+
+// Récupérer TOUTES les commandes depuis l'API (admin uniquement)
+async function dbGetOrdersFromAPI(){
+  const token = localStorage.getItem('gp_admin_token');
+  if(!token) throw new Error('Non authentifié');
+  const r = await fetch(API_BASE + '/orders', {
+    headers: {'Authorization':'Bearer '+token}
+  });
+  if(!r.ok) throw new Error('Erreur ' + r.status);
+  return r.json();
 }
 function dbExport(){
   const data = { version: DB_VERSION, exportedAt: new Date().toISOString(), products: dbGet(), orders: dbGetOrders() };

@@ -51,12 +51,12 @@
             <span style="font:600 16px Inter">Coordonnées &amp; livraison</span>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-            <input placeholder="Prénom" class="form-input">
-            <input placeholder="Nom" class="form-input">
-            <input placeholder="Adresse e-mail" type="email" class="form-input" style="grid-column:1/-1">
-            <input placeholder="Adresse" class="form-input" style="grid-column:1/-1">
-            <input placeholder="Code postal" class="form-input">
-            <input placeholder="Ville" class="form-input">
+            <input id="f-firstname" placeholder="Prénom" class="form-input">
+            <input id="f-lastname" placeholder="Nom" class="form-input">
+            <input id="f-email" placeholder="Adresse e-mail" type="email" class="form-input" style="grid-column:1/-1">
+            <input id="f-address" placeholder="Adresse" class="form-input" style="grid-column:1/-1">
+            <input id="f-zip" placeholder="Code postal" class="form-input">
+            <input id="f-city" placeholder="Ville" class="form-input">
           </div>
         </div>
 
@@ -248,15 +248,31 @@ document.addEventListener('DOMContentLoaded',()=>{
     const no='GP-'+Math.floor(100000+Math.random()*899999);
     const cart=getCart();
     // Save order to DB
+    const subtotal = cart.reduce((s,c)=>{ const p=getProducts().find(x=>x.id===c.id); return s+(p?p.priceN*c.qty:0); },0);
+    const discount = promoApplied ? Math.round(subtotal*0.1) : 0;
+    const total = subtotal - discount + shipExtra;
+    const email = (document.getElementById('f-email')?.value || '').trim();
+    const firstname = (document.getElementById('f-firstname')?.value || '').trim();
+    const lastname = (document.getElementById('f-lastname')?.value || '').trim();
+
+    if(!email){ alert('Merci de renseigner votre adresse e-mail.'); return; }
+
     dbSaveOrder({
       id: no,
-      date: new Date().toISOString(),
+      email,
+      name: (firstname + ' ' + lastname).trim() || null,
+      address: {
+        street: (document.getElementById('f-address')?.value || '').trim(),
+        zip:    (document.getElementById('f-zip')?.value || '').trim(),
+        city:   (document.getElementById('f-city')?.value || '').trim(),
+      },
       lines: cart.map(c=>{ const p=getProducts().find(x=>x.id===c.id); return {id:c.id,qty:c.qty,name:p?p.name:'',brand:p?p.brand:'',priceN:p?p.priceN:0}; }),
-      subtotal: cart.reduce((s,c)=>{ const p=getProducts().find(x=>x.id===c.id); return s+(p?p.priceN*c.qty:0); },0),
-      discount: promoApplied ? Math.round(cart.reduce((s,c)=>{ const p=getProducts().find(x=>x.id===c.id); return s+(p?p.priceN*c.qty:0); },0)*0.1) : 0,
+      subtotal,
+      discount,
       shipping: shipExtra,
+      total,
       status: 'confirmée',
-      promoApplied
+      promoCode: promoApplied ? 'GEARPLAY10' : null
     });
     // Decrement stock
     dbDecrementStock(cart);
