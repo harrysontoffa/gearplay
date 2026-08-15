@@ -64,17 +64,43 @@ function dbValidate(p){
 function dbUpsert(product){
   const errors = dbValidate(product);
   if(errors.length>0) return {ok:false, errors};
-  const products = dbGet();
-  const idx = products.findIndex(p=>p.id===product.id);
-  if(idx>=0) products[idx]=product; else products.push(product);
-  dbSave(products);
+  const token = localStorage.getItem('gp_admin_token');
+  if(!token){ return {ok:false, errors:['Non authentifié — reconnecte-toi.']}; }
+
+  // Nettoyer le payload : convertir desc→description, virer les champs auto-générés
+  const { desc, createdAt, updatedAt, ...rest } = product;
+  const payload = { ...rest };
+  if(desc !== undefined) payload.description = desc;
+
+  const isNew = !dbGet().find(p=>p.id===product.id);
+  const url = isNew ? API_BASE+'/products' : API_BASE+'/products/'+product.id;
+  fetch(url, {
+    method: isNew ? 'POST' : 'PUT',
+    headers: {'Content-Type':'application/json', 'Authorization':'Bearer '+token},
+    body: JSON.stringify(payload)
+  })
+  .then(r => r.ok ? r.json() : r.text().then(t => Promise.reject(t)))
+  .then(saved => {
+    const products = dbGet();
+    const idx = products.findIndex(p=>p.id===saved.id);
+    const withDesc = {...saved, desc: saved.description};
+    if(idx>=0) products[idx]=withDesc; else products.push(withDesc);
+    dbSave(products);
+  })
+  .catch(err => alert('Erreur API : ' + err));
   return {ok:true};
 }
-function dbDelete(id){ dbSave(dbGet().filter(p=>p.id!==id)); }
-function dbReset(){
-  localStorage.removeItem(DB_KEY);
-  localStorage.setItem(VER_KEY, DB_VERSION);
-  return dbGet();
+
+function dbDelete(id){
+  const token = localStorage.getItem('gp_admin_token');
+  if(!token){ alert('Non authentifié.'); return; }
+  fetch(API_BASE+'/products/'+id, {
+    method: 'DELETE',
+    headers: {'Authorization':'Bearer '+token}
+  })
+  .then(r => r.ok ? r.json() : Promise.reject(r.status))
+  .then(() => dbSave(dbGet().filter(p=>p.id!==id)))
+  .catch(err => alert('Erreur suppression : ' + err));
 }
 function dbDecrementStock(cartLines){
   const products = dbGet();

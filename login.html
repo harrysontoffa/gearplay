@@ -67,31 +67,36 @@
 </div>
 
 <script>
-const DEFAULT_USER = 'admin';
-const DEFAULT_PASS = 'gearplay2026';
-const PW_KEY = 'gp_admin_pw';
-const USER_KEY = 'gp_admin_user';
+const API_BASE = 'http://localhost:3000/api';
+const TOKEN_KEY = 'gp_admin_token';
 const SESSION_KEY = 'gp_admin_session';
 
-function getStoredUser(){ return localStorage.getItem(USER_KEY)||DEFAULT_USER; }
-function getStoredPass(){ return localStorage.getItem(PW_KEY)||DEFAULT_PASS; }
-
-// Redirect if already logged in
+// Redirect si déjà connecté
 if(sessionStorage.getItem(SESSION_KEY)==='1') location.replace('admin.html');
 
-document.getElementById('login-form').addEventListener('submit',()=>{
+document.getElementById('login-form').addEventListener('submit', async ()=>{
   const user = document.getElementById('f-user').value.trim();
   const pass = document.getElementById('f-pass').value;
-  const err  = document.getElementById('error-msg');
-  if(user===getStoredUser() && pass===getStoredPass()){
-    sessionStorage.setItem(SESSION_KEY,'1');
+  const errBox = document.getElementById('error-msg');
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true; btn.textContent = 'Connexion...';
+  try {
+    const res = await fetch(API_BASE + '/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ username: user, password: pass })
+    });
+    if(!res.ok) throw new Error('bad-credentials');
+    const data = await res.json();
+    localStorage.setItem(TOKEN_KEY, data.token);
+    sessionStorage.setItem(SESSION_KEY, '1');
     location.replace('admin.html');
-  } else {
-    err.style.display='block';
-    document.getElementById('login-card');
+  } catch(e) {
+    errBox.style.display = 'block';
     document.querySelector('.login-card').classList.remove('shake');
     void document.querySelector('.login-card').offsetWidth;
     document.querySelector('.login-card').classList.add('shake');
+    btn.disabled = false; btn.textContent = 'Se connecter →';
   }
 });
 
@@ -100,26 +105,14 @@ document.getElementById('toggle-pw').addEventListener('click',()=>{
   inp.type = inp.type==='password'?'text':'password';
 });
 
-document.getElementById('change-pw-link').addEventListener('click',e=>{
+// Fonction "Changer mot de passe" désactivée pour l'instant (API à venir)
+document.getElementById('change-pw-link').addEventListener('click', e=>{
   e.preventDefault();
-  document.getElementById('pw-overlay').style.display='flex';
+  alert('Le changement de mot de passe passera bientôt par l\'API backend.');
 });
-
 function closePwModal(){ document.getElementById('pw-overlay').style.display='none'; }
-function changePw(){
-  const cur  = document.getElementById('pw-current').value;
-  const nw   = document.getElementById('pw-new').value;
-  const conf = document.getElementById('pw-confirm').value;
-  const err  = document.getElementById('pw-error');
-  if(cur!==getStoredPass()){ err.textContent='Mot de passe actuel incorrect.'; err.style.display='block'; return; }
-  if(nw.length<6){ err.textContent='Le nouveau mot de passe doit faire au moins 6 caractères.'; err.style.display='block'; return; }
-  if(nw!==conf){ err.textContent='Les mots de passe ne correspondent pas.'; err.style.display='block'; return; }
-  localStorage.setItem(PW_KEY, nw);
-  closePwModal();
-  alert('Mot de passe mis à jour !');
-}
+function changePw(){ closePwModal(); }
 
-// Apply dark theme
 document.body.setAttribute('data-theme', localStorage.getItem('gp_theme')||'dark');
 </script>
 </body></html>
