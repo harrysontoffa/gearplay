@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mon compte — GearPlay Store</title>
+<meta name="description" content="Gérez votre compte GearPlay : commandes, favoris, adresses et informations personnelles.">
+<meta name="robots" content="noindex,follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="gp-header-mount"></div>
+<div id="gp-cart-mount"></div>
+<main style="max-width:1180px;margin:0 auto;padding:40px 28px 72px">
+  <nav class="breadcrumb"><a href="index.html">Accueil</a><span>/</span><span style="color:var(--text)">Mon compte</span></nav>
+
+  <!-- LOGGED OUT -->
+  <div id="account-auth" style="display:none">
+    <div style="max-width:440px;margin:20px auto">
+      <h1 class="clash" style="font:600 34px/1.05 'Clash Display',sans-serif;letter-spacing:-.015em;text-align:center;margin-bottom:8px">Mon compte</h1>
+      <p style="font:400 14px Inter;color:var(--text2);text-align:center;margin-bottom:28px">Connectez-vous ou créez un compte pour suivre vos commandes.</p>
+      <div style="border:1px solid var(--hair);border-radius:16px;background:var(--card);padding:32px">
+        <div style="display:flex;gap:6px;margin-bottom:24px;padding:5px;background:var(--bg);border-radius:10px">
+          <button id="tab-login" class="auth-tab active" onclick="switchAuth('login')">Connexion</button>
+          <button id="tab-register" class="auth-tab" onclick="switchAuth('register')">Inscription</button>
+        </div>
+        <div id="form-login">
+          <input id="login-email" class="form-input" type="email" placeholder="Adresse e-mail" style="margin-bottom:12px">
+          <input id="login-pass" class="form-input" type="password" placeholder="Mot de passe" style="margin-bottom:18px">
+          <button onclick="doLogin()" class="btn-primary" style="width:100%;display:flex;justify-content:center">Se connecter</button>
+        </div>
+        <div id="form-register" style="display:none">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <input id="reg-first" class="form-input" placeholder="Prénom">
+            <input id="reg-last" class="form-input" placeholder="Nom">
+          </div>
+          <input id="reg-email" class="form-input" type="email" placeholder="Adresse e-mail" style="margin-bottom:12px">
+          <input id="reg-pass" class="form-input" type="password" placeholder="Mot de passe" style="margin-bottom:18px">
+          <button onclick="doRegister()" class="btn-primary" style="width:100%;display:flex;justify-content:center">Créer mon compte</button>
+        </div>
+        <div id="auth-msg" style="display:none;margin-top:14px;font:500 13px Inter;text-align:center"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGGED IN -->
+  <div id="account-dash" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;flex-wrap:wrap;gap:12px">
+      <div>
+        <h1 class="clash" style="font:600 34px/1.05 'Clash Display',sans-serif;letter-spacing:-.015em">Bonjour, <span id="user-name"></span> 👋</h1>
+        <p style="font:400 14px Inter;color:var(--text2);margin-top:4px" id="user-email"></p>
+      </div>
+      <button onclick="doLogout()" class="btn-secondary">Se déconnecter</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:220px 1fr;gap:32px;align-items:start" class="dash-grid">
+      <aside style="border:1px solid var(--hair);border-radius:14px;background:var(--card);padding:10px;position:sticky;top:100px">
+        <button class="dash-nav active" data-tab="orders" onclick="switchDash('orders')"><span>📦</span> Mes commandes</button><button class="dash-nav" data-tab="wishlist" onclick="switchDash('wishlist')"><span>❤</span> Mes favoris</button><button class="dash-nav" data-tab="address" onclick="switchDash('address')"><span>📍</span> Mes adresses</button><button class="dash-nav" data-tab="profile" onclick="switchDash('profile')"><span>👤</span> Informations</button>
+      </aside>
+
+      <div>
+        <div id="dash-orders" class="dash-panel"></div>
+        <div id="dash-wishlist" class="dash-panel" style="display:none"></div>
+        <div id="dash-address" class="dash-panel" style="display:none">
+          <h2 style="font:600 20px Inter;margin-bottom:16px">Mes adresses</h2>
+          <div style="border:1px solid var(--hair);border-radius:14px;background:var(--card);padding:24px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:12px"><span class="badge">Par défaut</span><a href="#" style="font:500 13px Inter;color:var(--link)">Modifier</a></div>
+            <div style="font:600 15px Inter">Adresse de livraison</div>
+            <p style="font:400 14px/1.6 Inter;color:var(--text2);margin-top:6px">12 rue du Capitole<br>31000 Toulouse<br>France</p>
+          </div>
+        </div>
+        <div id="dash-profile" class="dash-panel" style="display:none">
+          <h2 style="font:600 20px Inter;margin-bottom:16px">Informations personnelles</h2>
+          <div style="border:1px solid var(--hair);border-radius:14px;background:var(--card);padding:24px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+              <div><label style="font:600 12px Inter;color:var(--text2);display:block;margin-bottom:6px">PRÉNOM</label><input id="prof-first" class="form-input"></div>
+              <div><label style="font:600 12px Inter;color:var(--text2);display:block;margin-bottom:6px">NOM</label><input id="prof-last" class="form-input"></div>
+            </div>
+            <label style="font:600 12px Inter;color:var(--text2);display:block;margin-bottom:6px">E-MAIL</label>
+            <input id="prof-email" class="form-input" style="margin-bottom:18px">
+            <button onclick="saveProfile()" class="btn-primary">Enregistrer</button>
+            <span id="prof-saved" style="display:none;margin-left:12px;color:var(--accent2);font:500 13px Inter">✓ Enregistré</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+<style>
+.auth-tab{flex:1;padding:11px;border:0;background:transparent;color:var(--text2);font:600 14px Inter;border-radius:7px;cursor:pointer;transition:all .2s}
+.auth-tab.active{background:var(--elev);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.dash-nav{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:12px 14px;border:0;background:transparent;color:var(--text2);font:500 14px Inter;border-radius:9px;cursor:pointer;transition:all .18s}
+.dash-nav:hover{background:var(--bg);color:var(--text)}
+.dash-nav.active{background:var(--bg);color:var(--text)}
+.dash-nav.active span{filter:none}
+@media(max-width:800px){.dash-grid{grid-template-columns:1fr!important}}
+</style>
+<div id="gp-footer-mount"></div>
+<script src="js/data.js"></script>
+<script src="js/db.js"></script>
+<script src="js/main.js"></script>
+<script>
+const ACCOUNT_KEY='gp_account';
+function getAccount(){ try{ return JSON.parse(localStorage.getItem(ACCOUNT_KEY)); }catch(e){ return null; } }
+function setAccount(a){ localStorage.setItem(ACCOUNT_KEY,JSON.stringify(a)); }
+
+function switchAuth(t){
+  document.getElementById('tab-login').classList.toggle('active',t==='login');
+  document.getElementById('tab-register').classList.toggle('active',t==='register');
+  document.getElementById('form-login').style.display=t==='login'?'block':'none';
+  document.getElementById('form-register').style.display=t==='register'?'block':'none';
+  document.getElementById('auth-msg').style.display='none';
+}
+function authMsg(m,ok){ const e=document.getElementById('auth-msg'); e.textContent=m; e.style.color=ok?'var(--accent2)':'var(--err)'; e.style.display='block'; }
+
+function doRegister(){
+  const first=document.getElementById('reg-first').value.trim();
+  const last=document.getElementById('reg-last').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const pass=document.getElementById('reg-pass').value;
+  if(!first||!email||!pass){ authMsg('Tous les champs sont requis.',false); return; }
+  if(pass.length<4){ authMsg('Mot de passe trop court (min. 4).',false); return; }
+  setAccount({first,last,email,pass}); render();
+  toast('Compte créé avec succès !','✓');
+}
+function doLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  const acc=getAccount();
+  if(acc && acc.email===email && acc.pass===pass){ sessionStorage.setItem('gp_logged','1'); render(); toast('Connexion réussie','✓'); }
+  else if(acc && acc.email===email){ authMsg('Mot de passe incorrect.',false); }
+  else { authMsg('Aucun compte trouvé. Inscrivez-vous d\'abord.',false); }
+}
+function doLogout(){ sessionStorage.removeItem('gp_logged'); render(); }
+
+function switchDash(t){
+  document.querySelectorAll('.dash-nav').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
+  document.querySelectorAll('.dash-panel').forEach(p=>p.style.display='none');
+  document.getElementById('dash-'+t).style.display='block';
+  if(t==='orders')renderOrders();
+  if(t==='wishlist')renderWishlist();
+}
+
+function renderOrders(){
+  const orders=dbGetOrders();
+  const el=document.getElementById('dash-orders');
+  el.innerHTML='<h2 style="font:600 20px Inter;margin-bottom:16px">Mes commandes</h2>'+
+    (orders.length===0
+      ? '<div style="border:1px dashed var(--hair);border-radius:14px;padding:48px;text-align:center;color:var(--text2)"><div style="font-size:36px;margin-bottom:12px">📦</div><div style="font:500 15px Inter">Aucune commande pour le moment.</div><a href="categorie.html" class="btn-primary" style="margin-top:16px;display:inline-flex">Découvrir le catalogue</a></div>'
+      : orders.map(o=>{ const total=o.subtotal-o.discount+o.shipping; return '<div style="border:1px solid var(--hair);border-radius:14px;background:var(--card);padding:20px;margin-bottom:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:6px"><div><span class="clash" style="font:600 16px \'Clash Display\',sans-serif">'+o.id+'</span> <span style="color:var(--text2);font:400 13px Inter">· '+new Date(o.date).toLocaleDateString('fr-FR')+'</span></div><span class="badge">'+(o.status||'confirmée')+'</span></div><div style="font:400 13.5px Inter;color:var(--text2);margin-bottom:12px">'+(o.lines||[]).map(l=>l.qty+'× '+l.name).join(', ')+'</div><div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--hair)"><a href="suivi.html" style="font:500 13px Inter;color:var(--link)">Suivre →</a><span class="clash num" style="font:600 18px \'Clash Display\',sans-serif">'+total.toLocaleString('fr-FR')+' €</span></div></div>'; }).join('')
+    );
+}
+
+function renderWishlist(){
+  const wish=getWish();
+  const el=document.getElementById('dash-wishlist');
+  const products=wish.map(id=>getProducts().find(p=>p.id===id)).filter(Boolean);
+  el.innerHTML='<h2 style="font:600 20px Inter;margin-bottom:16px">Mes favoris</h2>'+
+    (products.length===0
+      ? '<div style="border:1px dashed var(--hair);border-radius:14px;padding:48px;text-align:center;color:var(--text2)"><div style="font-size:36px;margin-bottom:12px">❤</div><div style="font:500 15px Inter">Aucun favori enregistré.</div></div>'
+      : '<div class="product-grid-3" id="wish-grid"></div>');
+  if(products.length>0) renderCards(products,'wish-grid');
+}
+
+function saveProfile(){
+  const acc=getAccount()||{};
+  acc.first=document.getElementById('prof-first').value.trim();
+  acc.last=document.getElementById('prof-last').value.trim();
+  acc.email=document.getElementById('prof-email').value.trim();
+  setAccount(acc);
+  document.getElementById('prof-saved').style.display='inline';
+  document.getElementById('user-name').textContent=acc.first;
+  document.getElementById('user-email').textContent=acc.email;
+  setTimeout(()=>document.getElementById('prof-saved').style.display='none',3000);
+}
+
+function render(){
+  const acc=getAccount();
+  const logged=sessionStorage.getItem('gp_logged')==='1' && acc;
+  document.getElementById('account-auth').style.display=logged?'none':'block';
+  document.getElementById('account-dash').style.display=logged?'block':'none';
+  if(logged){
+    document.getElementById('user-name').textContent=acc.first;
+    document.getElementById('user-email').textContent=acc.email;
+    document.getElementById('prof-first').value=acc.first||'';
+    document.getElementById('prof-last').value=acc.last||'';
+    document.getElementById('prof-email').value=acc.email||'';
+    renderOrders();
+  }
+}
+
+document.addEventListener('DOMContentLoaded',render);
+</script>
+</body></html>

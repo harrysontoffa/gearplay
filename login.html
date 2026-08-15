@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Connexion Admin — GearPlay Store</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+  <meta name="robots" content="noindex, nofollow">
+<style>
+  body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg)}
+  .login-card{width:100%;max-width:420px;border:1px solid var(--hair);border-radius:16px;background:var(--card);padding:40px;box-shadow:var(--shadow)}
+  .login-logo{font:600 24px/1 'Clash Display',sans-serif;margin-bottom:6px}
+  .login-logo span{color:var(--accent2)}
+  .error-msg{display:none;background:color-mix(in srgb,var(--err) 12%,transparent);color:var(--err);font:500 13px Inter;padding:12px 14px;border-radius:8px;margin-bottom:16px}
+  .shake{animation:shake .35s ease}
+  @keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+</style>
+</head>
+<body data-theme="dark">
+<div class="login-card">
+  <div class="login-logo">Gear<span>Play</span></div>
+  <div style="font:400 13px Inter;color:var(--text2);margin-bottom:32px">Espace administration</div>
+
+  <div id="error-msg" class="error-msg">Identifiants incorrects.</div>
+
+  <form id="login-form" onsubmit="return false">
+    <div style="margin-bottom:14px">
+      <label class="field-label" style="display:block;font:600 11px Inter;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);margin-bottom:6px">Identifiant</label>
+      <input id="f-user" class="form-input" placeholder="admin" autocomplete="username" style="width:100%">
+    </div>
+    <div style="margin-bottom:24px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <label class="field-label" style="font:600 11px Inter;letter-spacing:.06em;text-transform:uppercase;color:var(--text2)">Mot de passe</label>
+        <a href="#" id="change-pw-link" style="font:400 12px Inter;color:var(--link)">Changer</a>
+      </div>
+      <div style="position:relative">
+        <input id="f-pass" type="password" class="form-input" placeholder="••••••••" autocomplete="current-password" style="width:100%;padding-right:44px">
+        <button type="button" id="toggle-pw" style="position:absolute;right:0;top:0;width:44px;height:100%;border:0;background:transparent;color:var(--text2);cursor:pointer;font:400 18px Inter" tabindex="-1">👁</button>
+      </div>
+    </div>
+    <button type="submit" id="login-btn" class="btn-primary" style="width:100%;display:flex;justify-content:center">Se connecter →</button>
+  </form>
+
+  <p style="font:400 12px Inter;color:var(--text2);margin-top:20px;text-align:center">
+    Identifiants par défaut : <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px">admin</code> / <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px">gearplay2026</code>
+  </p>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div id="pw-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;display:none;align-items:center;justify-content:center">
+  <div style="background:var(--elev);border:1px solid var(--hair);border-radius:14px;padding:32px;max-width:400px;width:100%;box-shadow:var(--shadow)">
+    <h2 style="font:600 18px Inter;margin-bottom:20px">Changer le mot de passe</h2>
+    <div id="pw-error" style="display:none;color:var(--err);font:500 13px Inter;margin-bottom:14px"></div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
+      <input id="pw-current" type="password" class="form-input" placeholder="Mot de passe actuel">
+      <input id="pw-new" type="password" class="form-input" placeholder="Nouveau mot de passe (min. 6 caractères)">
+      <input id="pw-confirm" type="password" class="form-input" placeholder="Confirmer le nouveau mot de passe">
+    </div>
+    <div style="display:flex;gap:12px;justify-content:flex-end">
+      <button onclick="closePwModal()" class="btn-secondary">Annuler</button>
+      <button onclick="changePw()" class="btn-primary">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DEFAULT_USER = 'admin';
+const DEFAULT_PASS = 'gearplay2026';
+const PW_KEY = 'gp_admin_pw';
+const USER_KEY = 'gp_admin_user';
+const SESSION_KEY = 'gp_admin_session';
+
+function getStoredUser(){ return localStorage.getItem(USER_KEY)||DEFAULT_USER; }
+function getStoredPass(){ return localStorage.getItem(PW_KEY)||DEFAULT_PASS; }
+
+// Redirect if already logged in
+if(sessionStorage.getItem(SESSION_KEY)==='1') location.replace('admin.html');
+
+document.getElementById('login-form').addEventListener('submit',()=>{
+  const user = document.getElementById('f-user').value.trim();
+  const pass = document.getElementById('f-pass').value;
+  const err  = document.getElementById('error-msg');
+  if(user===getStoredUser() && pass===getStoredPass()){
+    sessionStorage.setItem(SESSION_KEY,'1');
+    location.replace('admin.html');
+  } else {
+    err.style.display='block';
+    document.getElementById('login-card');
+    document.querySelector('.login-card').classList.remove('shake');
+    void document.querySelector('.login-card').offsetWidth;
+    document.querySelector('.login-card').classList.add('shake');
+  }
+});
+
+document.getElementById('toggle-pw').addEventListener('click',()=>{
+  const inp = document.getElementById('f-pass');
+  inp.type = inp.type==='password'?'text':'password';
+});
+
+document.getElementById('change-pw-link').addEventListener('click',e=>{
+  e.preventDefault();
+  document.getElementById('pw-overlay').style.display='flex';
+});
+
+function closePwModal(){ document.getElementById('pw-overlay').style.display='none'; }
+function changePw(){
+  const cur  = document.getElementById('pw-current').value;
+  const nw   = document.getElementById('pw-new').value;
+  const conf = document.getElementById('pw-confirm').value;
+  const err  = document.getElementById('pw-error');
+  if(cur!==getStoredPass()){ err.textContent='Mot de passe actuel incorrect.'; err.style.display='block'; return; }
+  if(nw.length<6){ err.textContent='Le nouveau mot de passe doit faire au moins 6 caractères.'; err.style.display='block'; return; }
+  if(nw!==conf){ err.textContent='Les mots de passe ne correspondent pas.'; err.style.display='block'; return; }
+  localStorage.setItem(PW_KEY, nw);
+  closePwModal();
+  alert('Mot de passe mis à jour !');
+}
+
+// Apply dark theme
+document.body.setAttribute('data-theme', localStorage.getItem('gp_theme')||'dark');
+</script>
+</body></html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Confirmation de commande — GearPlay Store</title>
+</head>
+<body style="margin:0;padding:0;background:#0E1013;font-family:Inter,Arial,sans-serif;-webkit-font-smoothing:antialiased">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#0E1013;padding:40px 20px">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%">
+
+      <!-- HEADER -->
+      <tr><td style="background:#181B20;border-radius:16px 16px 0 0;padding:32px 40px;border-bottom:1px solid #2A2E35">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td><span style="font-family:Arial,sans-serif;font-size:22px;font-weight:700;color:#F2F4F7">Gear<span style="color:#5FD08C">Play</span></span></td>
+            <td align="right"><span style="font-size:12px;color:#AEB6C2">Boutique gaming &amp; high-tech</span></td>
+          </tr>
+        </table>
+      </td></tr>
+
+      <!-- HERO -->
+      <tr><td style="background:#181B20;padding:40px 40px 32px;text-align:center">
+        <div style="display:inline-block;width:64px;height:64px;background:#C6F551;border-radius:50%;line-height:64px;font-size:28px;margin-bottom:20px">✓</div>
+        <h1 style="font-size:26px;font-weight:700;color:#F2F4F7;margin:0 0 10px">Commande confirmée !</h1>
+        <p style="font-size:15px;color:#AEB6C2;margin:0">Merci pour votre achat. Votre commande est en cours de traitement.</p>
+      </td></tr>
+
+      <!-- ORDER NUMBER -->
+      <tr><td style="background:#1F232A;padding:20px 40px;text-align:center;border-top:1px solid #2A2E35;border-bottom:1px solid #2A2E35">
+        <span style="font-size:13px;color:#AEB6C2">Numéro de commande</span><br>
+        <span style="font-size:20px;font-weight:700;color:#C6F551;font-family:monospace">{{ORDER_ID}}</span>
+      </td></tr>
+
+      <!-- ORDER LINES -->
+      <tr><td style="background:#181B20;padding:32px 40px">
+        <h2 style="font-size:15px;font-weight:600;color:#F2F4F7;margin:0 0 16px">Votre commande</h2>
+        {{ORDER_LINES}}
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #2A2E35;margin-top:16px;padding-top:16px">
+          <tr><td style="font-size:13px;color:#AEB6C2;padding:4px 0">Sous-total</td><td align="right" style="font-size:13px;color:#F2F4F7">{{SUBTOTAL}}</td></tr>
+          {{DISCOUNT_ROW}}
+          <tr><td style="font-size:13px;color:#AEB6C2;padding:4px 0">Livraison</td><td align="right" style="font-size:13px;color:#5FD08C">{{SHIPPING}}</td></tr>
+          <tr><td style="font-size:15px;font-weight:700;color:#F2F4F7;padding:12px 0 0">Total TTC</td><td align="right" style="font-size:18px;font-weight:700;color:#C6F551;padding-top:12px">{{TOTAL}}</td></tr>
+        </table>
+      </td></tr>
+
+      <!-- DELIVERY INFO -->
+      <tr><td style="background:#1F232A;padding:24px 40px;border-top:1px solid #2A2E35">
+        <h2 style="font-size:15px;font-weight:600;color:#F2F4F7;margin:0 0 12px">Livraison</h2>
+        <p style="font-size:14px;color:#AEB6C2;margin:0 0 6px">{{SHIPPING_ADDRESS}}</p>
+        <p style="font-size:13px;color:#5FD08C;margin:0">Expédition sous 24-48h · Suivi par e-mail et SMS</p>
+      </td></tr>
+
+      <!-- TRUST -->
+      <tr><td style="background:#181B20;padding:24px 40px;border-top:1px solid #2A2E35">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td width="33%" style="text-align:center;padding:0 8px">
+              <div style="font-size:20px;margin-bottom:6px">🛡</div>
+              <div style="font-size:12px;font-weight:600;color:#F2F4F7">Garantie 2 ans</div>
+              <div style="font-size:11px;color:#AEB6C2;margin-top:2px">Matériel neuf</div>
+            </td>
+            <td width="33%" style="text-align:center;padding:0 8px;border-left:1px solid #2A2E35;border-right:1px solid #2A2E35">
+              <div style="font-size:20px;margin-bottom:6px">↩</div>
+              <div style="font-size:12px;font-weight:600;color:#F2F4F7">Retour 30 jours</div>
+              <div style="font-size:11px;color:#AEB6C2;margin-top:2px">Sans condition</div>
+            </td>
+            <td width="33%" style="text-align:center;padding:0 8px">
+              <div style="font-size:20px;margin-bottom:6px">💬</div>
+              <div style="font-size:12px;font-weight:600;color:#F2F4F7">SAV français</div>
+              <div style="font-size:11px;color:#AEB6C2;margin-top:2px">7j/7 à Toulouse</div>
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+
+      <!-- CTA -->
+      <tr><td style="background:#181B20;padding:24px 40px;text-align:center;border-top:1px solid #2A2E35">
+        <a href="https://gearplay.fr/index.html" style="display:inline-block;background:#C6F551;color:#0E1013;font-size:14px;font-weight:700;padding:14px 28px;border-radius:8px;text-decoration:none">Retour à la boutique →</a>
+      </td></tr>
+
+      <!-- FOOTER -->
+      <tr><td style="background:#0E1013;padding:24px 40px;text-align:center;border-radius:0 0 16px 16px">
+        <p style="font-size:12px;color:#AEB6C2;margin:0 0 6px">GearPlay Store SAS · SIRET 902 456 781 00025</p>
+        <p style="font-size:12px;color:#AEB6C2;margin:0">
+          <a href="https://gearplay.fr/mentions-legales.html" style="color:#7FB2FF">Mentions légales</a> ·
+          <a href="https://gearplay.fr/cgv.html" style="color:#7FB2FF">CGV</a> ·
+          <a href="https://gearplay.fr/confidentialite.html" style="color:#7FB2FF">Confidentialité</a>
+        </p>
+      </td></tr>
+
+    </table>
+  </td></tr>
+</table>
+</body></html>

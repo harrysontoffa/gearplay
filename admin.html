@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin — GearPlay Store</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+  <meta name="robots" content="noindex, nofollow">
+<style>
+  body{background:var(--bg);color:var(--text)}
+  .admin-layout{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+  .sidebar{background:var(--elev);border-right:1px solid var(--hair);padding:24px 0;position:sticky;top:0;height:100vh;overflow-y:auto}
+  .sidebar-logo{padding:0 20px 24px;border-bottom:1px solid var(--hair);margin-bottom:16px}
+  .sidebar-logo .clash{font:600 20px/1 'Clash Display',sans-serif}
+  .sidebar-logo .clash span{color:var(--accent2)}
+  .sidebar-label{font:600 11px Inter;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);padding:8px 20px 6px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font:500 14px Inter;color:var(--text2);cursor:pointer;border-left:3px solid transparent;text-decoration:none;transition:all .15s}
+  .nav-item:hover{background:var(--card);color:var(--text);text-decoration:none}
+  .nav-item.active{color:var(--text);background:var(--card);border-left-color:var(--cta-bg)}
+  .main-content{padding:32px 36px;overflow-y:auto}
+  .page-title{font:600 28px/1 'Clash Display',sans-serif;margin-bottom:8px;letter-spacing:-.01em}
+  .page-sub{font:400 14px Inter;color:var(--text2);margin-bottom:28px}
+
+  /* STATS */
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+  .stat-card{border:1px solid var(--hair);border-radius:12px;background:var(--card);padding:20px}
+  .stat-value{font:600 32px/1 'Clash Display',sans-serif;margin-bottom:6px}
+  .stat-label{font:400 13px Inter;color:var(--text2)}
+
+  /* TABLE */
+  .table-wrap{border:1px solid var(--hair);border-radius:12px;background:var(--card);overflow:hidden}
+  .table-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--hair)}
+  .table-search{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--hair);border-radius:8px;padding:8px 12px}
+  .table-search input{border:0;background:transparent;color:var(--text);font:400 13px Inter;outline:none;width:200px}
+  table{width:100%;border-collapse:collapse}
+  th{font:600 11px Inter;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);padding:12px 16px;text-align:left;border-bottom:1px solid var(--hair);background:var(--bg);white-space:nowrap}
+  td{padding:13px 16px;border-bottom:1px solid var(--hair);font:400 14px Inter;vertical-align:middle}
+  tr:last-child td{border-bottom:0}
+  tr:hover td{background:color-mix(in srgb,var(--bg) 60%,transparent)}
+  .badge-stock-ok{font:600 11px Inter;padding:4px 8px;border-radius:20px;background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+  .badge-stock-no{font:600 11px Inter;padding:4px 8px;border-radius:20px;background:color-mix(in srgb,var(--err) 15%,transparent);color:var(--err)}
+  .action-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:6px;border:1px solid var(--hair);background:transparent;cursor:pointer;color:var(--text2);transition:all .15s}
+  .action-btn:hover.edit{color:var(--link);border-color:var(--link)}
+  .action-btn:hover.del{color:var(--err);border-color:var(--err)}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+  .modal{background:var(--elev);border:1px solid var(--hair);border-radius:16px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow)}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--hair);position:sticky;top:0;background:var(--elev);z-index:1}
+  .modal-head h2{font:600 18px Inter}
+  .modal-body{padding:24px}
+  .modal-foot{padding:16px 24px;border-top:1px solid var(--hair);display:flex;justify-content:flex-end;gap:12px;position:sticky;bottom:0;background:var(--elev)}
+  .field-group{margin-bottom:16px}
+  .field-label{display:block;font:600 12px Inter;color:var(--text2);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+  /* CONFIRM DELETE */
+  .del-modal{background:var(--elev);border:1px solid var(--hair);border-radius:14px;padding:32px;max-width:400px;text-align:center;box-shadow:var(--shadow)}
+
+  /* TOAST */
+  #toast{position:fixed;bottom:24px;right:24px;z-index:200;display:flex;flex-direction:column;gap:8px}
+  .toast-item{background:var(--elev);border:1px solid var(--hair);border-radius:10px;padding:12px 18px;font:500 14px Inter;box-shadow:var(--shadow);animation:slideIn .2s ease;display:flex;align-items:center;gap:10px}
+  @keyframes slideIn{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+
+  @media(max-width:800px){
+    .admin-layout{grid-template-columns:1fr}
+    .sidebar{display:none}
+    .stats-grid{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body data-theme="dark">
+
+<div class="admin-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="clash">Gear<span>Play</span> <span style="font:500 11px Inter;color:var(--text2);font-family:Inter">Admin</span></div>
+    </div>
+    <div class="sidebar-label">Navigation</div>
+    <a class="nav-item active" href="#" data-page="products">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/></svg>
+      Produits
+    </a>
+    <a class="nav-item" href="#" data-page="orders">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 7h13l-1.3 8.5a2 2 0 0 1-2 1.7H9.3a2 2 0 0 1-2-1.7L6 5H3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="9.5" cy="20" r="1.3" fill="currentColor"/><circle cx="16" cy="20" r="1.3" fill="currentColor"/></svg>
+      Commandes
+    </a>
+    <a class="nav-item" href="#" data-page="customers">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.4" stroke="currentColor" stroke-width="1.7"/><path d="M5.5 19a6.5 6.5 0 0 1 13 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      Clients
+    </a>
+    <div class="sidebar-label" style="margin-top:16px">Paramètres</div>
+    <a class="nav-item" href="#" onclick="dbExport()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      Exporter la DB (JSON)
+    </a>
+    <a class="nav-item" href="#" onclick="document.getElementById('import-file').click()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><polyline points="17 8 12 3 7 8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      Importer une DB (JSON)
+    </a>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(this)">
+    <a class="nav-item" href="#" onclick="resetDB()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 9a8 8 0 1 1-1 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 5v4h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Réinitialiser les données
+    </a>
+    <div style="padding:20px;margin-top:auto;border-top:1px solid var(--hair);margin-top:24px">
+      <a href="index.html" style="font:500 13px Inter;color:var(--text2);text-decoration:none;display:flex;align-items:center;gap:8px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Voir la boutique
+      </a>
+      <a href="#" onclick="logout()" style="font:500 13px Inter;color:var(--err);text-decoration:none;display:flex;align-items:center;gap:8px;margin-top:10px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Déconnexion
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <!-- PRODUCTS PAGE -->
+    <div id="page-products">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+        <div>
+          <h1 class="page-title">Produits</h1>
+          <p class="page-sub">Gérez votre catalogue — ajout, modification, suppression.</p>
+        </div>
+        <button class="btn-primary" onclick="openModal()" style="flex-shrink:0">+ Ajouter un produit</button>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-grid" id="stats-grid"></div>
+
+      <!-- TABLE -->
+      <div class="table-wrap">
+        <div class="table-head">
+          <span style="font:600 15px Inter">Catalogue</span>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div class="table-search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="var(--text2)" stroke-width="1.8"/><path d="m20 20-3.5-3.5" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <input id="table-search" placeholder="Rechercher…" oninput="renderTable()">
+            </div>
+            <select id="cat-filter" class="form-select" style="width:auto;padding:8px 12px;font-size:13px" onchange="renderTable()">
+              <option value="">Toutes catégories</option>
+              <option>Consoles</option><option>Manettes</option><option>Smartphones</option><option>PC portables</option><option>Photo</option>
+            </select>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="products-table">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Catégorie</th>
+                <th>Prix</th>
+                <th>Ancien prix</th>
+                <th>Stock</th>
+                <th>Note</th>
+                <th style="text-align:right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORDERS PAGE -->
+    <div id="page-orders" style="display:none">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+        <div>
+          <h1 class="page-title">Commandes</h1>
+          <p class="page-sub">Historique des commandes enregistrées en base.</p>
+        </div>
+      </div>
+      <div id="orders-stats" class="stats-grid" style="margin-bottom:32px"></div>
+      <div class="table-wrap">
+        <div class="table-head"><span style="font:600 15px Inter">Toutes les commandes</span></div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th>N° commande</th><th>Date</th><th>Produits</th><th>Sous-total</th><th>Remise</th><th>Livraison</th><th>Total</th><th>Statut</th>
+            </tr></thead>
+            <tbody id="orders-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUSTOMERS PAGE (placeholder) -->
+    <div id="page-customers" style="display:none">
+      <h1 class="page-title">Clients</h1>
+      <p class="page-sub">Base clients enregistrés.</p>
+      <div style="border:1px dashed var(--hair);border-radius:12px;padding:80px;text-align:center;color:var(--text2)">
+        <div style="font:600 18px Inter;margin-bottom:8px">Aucun client</div>
+        <div style="font:400 14px Inter">Les comptes clients apparaîtront ici après intégration d'un backend.</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- PRODUCT MODAL -->
+<div id="modal-overlay" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modal-title">Ajouter un produit</h2>
+      <button onclick="closeModal()" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--hair);background:transparent;color:var(--text);cursor:pointer;font:400 18px Inter">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="f-id-orig">
+
+      <div class="field-group">
+        <label class="field-label">Identifiant unique (id)</label>
+        <input id="f-id" class="form-input" placeholder="ex: ctrl-pro-v2">
+      </div>
+
+      <div class="field-row field-group">
+        <div>
+          <label class="field-label">Nom du produit</label>
+          <input id="f-name" class="form-input" placeholder="Manette Pro…">
+        </div>
+        <div>
+          <label class="field-label">Marque</label>
+          <input id="f-brand" class="form-input" placeholder="GearPlay">
+        </div>
+      </div>
+
+      <div class="field-row field-group">
+        <div>
+          <label class="field-label">Catégorie</label>
+          <select id="f-cat" class="form-select">
+            <option>Consoles</option><option>Manettes</option><option>Smartphones</option><option>PC portables</option><option>Tablettes</option><option>Photo</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Modèle 3D</label>
+          <select id="f-model" class="form-select">
+            <option value="controller">Manette</option>
+            <option value="console">Console</option>
+            <option value="phone">Téléphone</option>
+            <option value="laptop">Laptop</option>
+            <option value="camera">Caméra</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-row-3 field-group">
+        <div>
+          <label class="field-label">Prix (€)</label>
+          <input id="f-price" type="number" class="form-input" placeholder="179">
+        </div>
+        <div>
+          <label class="field-label">Ancien prix (€)</label>
+          <input id="f-old" type="number" class="form-input" placeholder="219">
+        </div>
+        <div>
+          <label class="field-label">Remise (%)</label>
+          <input id="f-off" type="number" class="form-input" placeholder="18">
+        </div>
+      </div>
+
+      <div class="field-row-3 field-group">
+        <div>
+          <label class="field-label">Note (/5)</label>
+          <input id="f-rating" type="number" step="0.1" min="0" max="5" class="form-input" placeholder="4.9">
+        </div>
+        <div>
+          <label class="field-label">Nb avis</label>
+          <input id="f-reviews" type="number" class="form-input" placeholder="1240">
+        </div>
+        <div>
+          <label class="field-label">Stock</label>
+          <input id="f-stock" type="number" class="form-input" placeholder="42">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">
+          <input type="checkbox" id="f-instock" style="accent-color:var(--accent2);margin-right:6px">
+          En stock
+        </label>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Description</label>
+        <textarea id="f-desc" class="form-input" rows="3" style="resize:vertical"></textarea>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Viewer</label>
+        <select id="f-viewer" class="form-select" onchange="toggleEmbedField()">
+          <option value="canvas">3D Three.js (canvas)</option>
+          <option value="embed">Sketchfab embed</option>
+        </select>
+      </div>
+
+      <div class="field-group" id="embed-field" style="display:none">
+        <label class="field-label">URL Sketchfab embed</label>
+        <input id="f-embed" class="form-input" placeholder="https://sketchfab.com/models/…/embed">
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Coloris (JSON — ex: [{"label":"Noir","hex":"#111"}])</label>
+        <textarea id="f-colors" class="form-input" rows="3" style="resize:vertical;font:400 12px ui-monospace,monospace"></textarea>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Spécifications (JSON — ex: [["Écran","6,7 pouces"]])</label>
+        <textarea id="f-specs" class="form-input" rows="5" style="resize:vertical;font:400 12px ui-monospace,monospace"></textarea>
+      </div>
+
+      <div id="modal-error" style="display:none;color:var(--err);font:500 13px Inter;margin-top:8px;padding:10px;border-radius:8px;background:color-mix(in srgb,var(--err) 10%,transparent)"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" onclick="closeModal()">Annuler</button>
+      <button class="btn-primary" onclick="saveProduct()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM -->
+<div id="del-overlay" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeDel()">
+  <div class="del-modal">
+    <div style="font:600 22px/1.1 'Clash Display',sans-serif;margin-bottom:10px">Supprimer ce produit ?</div>
+    <p style="font:400 14px/1.6 Inter;color:var(--text2);margin-bottom:24px">Cette action est irréversible. Le produit sera retiré du catalogue immédiatement.</p>
+    <div style="display:flex;gap:12px;justify-content:center">
+      <button class="btn-secondary" onclick="closeDel()">Annuler</button>
+      <button class="btn-primary" id="del-confirm" style="background:var(--err);box-shadow:none">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script src="js/data.js"></script>
+<script src="js/db.js"></script>
+<script>
+/* ---- AUTH GUARD ---- */
+if(sessionStorage.getItem('gp_admin_session')!=='1') location.replace('login.html');
+
+function logout(){ sessionStorage.removeItem('gp_admin_session'); location.replace('login.html'); }
+
+/* ---- THEME ---- */
+const t=localStorage.getItem('gp_theme')||'dark';
+document.body.setAttribute('data-theme',t);
+
+/* ---- NAV ---- */
+document.querySelectorAll('[data-page]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    document.querySelectorAll('[data-page]').forEach(x=>x.classList.remove('active'));
+    a.classList.add('active');
+    document.querySelectorAll('[id^="page-"]').forEach(p=>p.style.display='none');
+    document.getElementById('page-'+a.dataset.page).style.display='block';
+  });
+});
+
+/* ---- STATS ---- */
+function renderStats(){
+  const products=dbGet();
+  const total=products.length;
+  const inStock=products.filter(p=>p.inStock).length;
+  const totalVal=products.reduce((s,p)=>s+p.priceN,0);
+  const avgRating=(products.reduce((s,p)=>s+p.rating,0)/total||0).toFixed(1);
+  const statData=[
+    {label:'Produits total',value:total,color:'var(--text)'},
+    {label:'En stock',value:inStock,color:'var(--ok)'},
+    {label:'Sur commande',value:total-inStock,color:'var(--err)'},
+    {label:'Valeur catalogue',value:totalVal.toLocaleString('fr-FR')+' €',color:'var(--cta-bg)'},
+  ];
+  document.getElementById('stats-grid').innerHTML=statData.map(s=>
+    `<div class="stat-card"><div class="stat-value clash" style="color:${s.color}">${s.value}</div><div class="stat-label">${s.label}</div></div>`
+  ).join('');
+}
+
+/* ---- TABLE ---- */
+function renderTable(){
+  const q=(document.getElementById('table-search').value||'').toLowerCase();
+  const cat=document.getElementById('cat-filter').value;
+  const products=dbGet().filter(p=>{
+    if(cat&&p.cat!==cat)return false;
+    if(q&&!(p.name+' '+p.brand).toLowerCase().includes(q))return false;
+    return true;
+  });
+  document.getElementById('table-body').innerHTML=products.map(p=>`
+    <tr>
+      <td>
+        <div style="font:600 14px Inter;color:var(--text)">${p.name}</div>
+        <div style="font:400 12px ui-monospace,monospace;color:var(--text2)">${p.id}</div>
+      </td>
+      <td style="color:var(--text2)">${p.cat}</td>
+      <td><strong class="num">${p.priceN.toLocaleString('fr-FR')} €</strong></td>
+      <td class="num" style="color:var(--text2);text-decoration:line-through">${p.oldN.toLocaleString('fr-FR')} €</td>
+      <td><span class="${p.inStock?'badge-stock-ok':'badge-stock-no'}">${p.inStock?'En stock':'Sur commande'}</span></td>
+      <td style="color:var(--cta-bg)">${p.rating}★</td>
+      <td style="text-align:right">
+        <div style="display:flex;gap:6px;justify-content:flex-end">
+          <button class="action-btn edit" title="Modifier" onclick="openModal('${p.id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </button>
+          <button class="action-btn del" title="Supprimer" onclick="openDel('${p.id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9 6V4h6v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function refresh(){ renderStats(); renderTable(); }
+
+/* ---- MODAL ---- */
+let editingId=null;
+
+function openModal(id){
+  editingId=id||null;
+  document.getElementById('modal-title').textContent=id?'Modifier le produit':'Ajouter un produit';
+  document.getElementById('modal-error').style.display='none';
+  if(id){
+    const p=dbGetProduct(id);
+    if(!p)return;
+    document.getElementById('f-id-orig').value=p.id;
+    document.getElementById('f-id').value=p.id;
+    document.getElementById('f-name').value=p.name;
+    document.getElementById('f-brand').value=p.brand;
+    document.getElementById('f-cat').value=p.cat;
+    document.getElementById('f-model').value=p.model;
+    document.getElementById('f-price').value=p.priceN;
+    document.getElementById('f-old').value=p.oldN;
+    document.getElementById('f-off').value=p.off;
+    document.getElementById('f-rating').value=p.rating;
+    document.getElementById('f-reviews').value=p.reviews;
+    document.getElementById('f-stock').value=p.stockN;
+    document.getElementById('f-instock').checked=p.inStock;
+    document.getElementById('f-desc').value=p.desc;
+    document.getElementById('f-viewer').value=p.viewer||'canvas';
+    document.getElementById('f-embed').value=p.embedUrl||'';
+    document.getElementById('f-colors').value=JSON.stringify(p.colors,null,2);
+    document.getElementById('f-specs').value=JSON.stringify(p.specs,null,2);
+    toggleEmbedField();
+  } else {
+    ['f-id','f-name','f-brand','f-price','f-old','f-off','f-rating','f-reviews','f-stock','f-desc','f-embed'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('f-instock').checked=true;
+    document.getElementById('f-viewer').value='canvas';
+    document.getElementById('f-colors').value=JSON.stringify([{label:'Noir',hex:'#1c1f24'}],null,2);
+    document.getElementById('f-specs').value=JSON.stringify([['Clé','Valeur']],null,2);
+    toggleEmbedField();
+  }
+  document.getElementById('modal-overlay').style.display='flex';
+}
+
+function closeModal(){ document.getElementById('modal-overlay').style.display='none'; editingId=null; }
+function toggleEmbedField(){ document.getElementById('embed-field').style.display=document.getElementById('f-viewer').value==='embed'?'block':'none'; }
+
+function saveProduct(){
+  const err=document.getElementById('modal-error');
+  err.style.display='none';
+  const id=document.getElementById('f-id').value.trim();
+  const name=document.getElementById('f-name').value.trim();
+  if(!id||!name){ err.textContent="L'identifiant et le nom sont obligatoires."; err.style.display="block"; return; }
+  let colors, specs;
+  try{ colors=JSON.parse(document.getElementById('f-colors').value); }catch(e){ err.textContent='Coloris JSON invalide.'; err.style.display='block'; return; }
+  try{ specs=JSON.parse(document.getElementById('f-specs').value); }catch(e){ err.textContent='Spécifications JSON invalides.'; err.style.display='block'; return; }
+  const product={
+    id, name, brand:document.getElementById('f-brand').value.trim(),
+    cat:document.getElementById('f-cat').value,
+    model:document.getElementById('f-model').value,
+    priceN:+document.getElementById('f-price').value||0,
+    oldN:+document.getElementById('f-old').value||0,
+    off:+document.getElementById('f-off').value||0,
+    rating:+document.getElementById('f-rating').value||0,
+    reviews:+document.getElementById('f-reviews').value||0,
+    stockN:+document.getElementById('f-stock').value||0,
+    inStock:document.getElementById('f-instock').checked,
+    desc:document.getElementById('f-desc').value.trim(),
+    viewer:document.getElementById('f-viewer').value,
+    embedUrl:document.getElementById('f-embed').value.trim()||null,
+    imgSrc:null, thumb:'', colors, specs,
+  };
+  // If ID changed during edit, remove old
+  const origId=document.getElementById('f-id-orig').value;
+  if(origId&&origId!==id) dbDelete(origId);
+  dbUpsert(product);
+  closeModal();
+  refresh();
+  toast(editingId?'Produit modifié':'Produit ajouté', '✓');
+}
+
+/* ---- DELETE ---- */
+let delId=null;
+function openDel(id){ delId=id; document.getElementById('del-overlay').style.display='flex'; }
+function closeDel(){ document.getElementById('del-overlay').style.display='none'; delId=null; }
+document.getElementById('del-confirm').onclick=()=>{
+  if(delId){ dbDelete(delId); closeDel(); refresh(); toast('Produit supprimé','✓'); }
+};
+
+/* ---- RESET ---- */
+function resetDB(){
+  if(confirm("Réinitialiser le catalogue aux données d'origine ?")){ dbReset(); refresh(); toast('Catalogue réinitialisé','↺'); }
+}
+
+/* ---- TOAST ---- */
+function toast(msg,icon='✓'){
+  const t=document.createElement('div');
+  t.className='toast-item';
+  t.innerHTML=`<span style="color:var(--accent2)">${icon}</span>${msg}`;
+  document.getElementById('toast').appendChild(t);
+  setTimeout(()=>t.remove(),3000);
+}
+
+/* ---- ORDERS ---- */
+function renderOrders(){
+  const orders = dbGetOrders();
+  const total = orders.length;
+  const revenue = orders.reduce((s,o)=>s+(o.subtotal-o.discount+o.shipping),0);
+  document.getElementById('orders-stats').innerHTML = [
+    {label:'Commandes total', value:total, color:'var(--text)'},
+    {label:'Chiffre d\'affaires', value:revenue.toLocaleString('fr-FR')+' €', color:'var(--cta-bg)'},
+    {label:'Avec code promo', value:orders.filter(o=>o.promoApplied).length, color:'var(--accent2)'},
+    {label:'Panier moyen', value:total>0?Math.round(revenue/total).toLocaleString('fr-FR')+' €':'—', color:'var(--text2)'},
+  ].map(s=>`<div class="stat-card"><div class="stat-value clash" style="color:${s.color}">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('');
+
+  document.getElementById('orders-body').innerHTML = orders.length===0
+    ? `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text2)">Aucune commande enregistrée.</td></tr>`
+    : orders.map(o=>{
+        const total = o.subtotal - o.discount + o.shipping;
+        const d = new Date(o.date);
+        const dateStr = d.toLocaleDateString('fr-FR')+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+        const items = (o.lines||[]).map(l=>l.name).join(', ');
+        return `<tr>
+          <td><strong style="font:600 13px Inter">${o.id}</strong></td>
+          <td style="color:var(--text2);white-space:nowrap">${dateStr}</td>
+          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)">${items}</td>
+          <td class="num">${o.subtotal.toLocaleString('fr-FR')} €</td>
+          <td class="num" style="color:var(--accent2)">${o.discount>0?'-'+o.discount.toLocaleString('fr-FR')+' €':'—'}</td>
+          <td class="num">${o.shipping>0?o.shipping+' €':'Offerte'}</td>
+          <td class="num"><strong>${total.toLocaleString('fr-FR')} €</strong></td>
+          <td><span class="badge-stock-ok">${o.status||'confirmée'}</span></td>
+        </tr>`;
+      }).join('');
+}
+
+/* ---- IMPORT ---- */
+function handleImport(input){
+  const file = input.files[0];
+  if(!file) return;
+  dbImport(file, res=>{
+    input.value='';
+    if(res.ok){ refresh(); renderOrders(); toast('DB importée — '+res.count+' produits','↑'); }
+    else toast('Erreur import : '+res.error,'✕');
+  });
+}
+
+/* ---- OVERRIDE saveProduct to use dbUpsert validation ---- */
+const _origSave = saveProduct;
+window.saveProduct = function(){
+  const err=document.getElementById('modal-error');
+  err.style.display='none';
+  const id=document.getElementById('f-id').value.trim();
+  const name=document.getElementById('f-name').value.trim();
+  let colors, specs;
+  try{ colors=JSON.parse(document.getElementById('f-colors').value); }catch(e){ err.textContent='Coloris JSON invalide.'; err.style.display='block'; return; }
+  try{ specs=JSON.parse(document.getElementById('f-specs').value); }catch(e){ err.textContent='Spécifications JSON invalides.'; err.style.display='block'; return; }
+  const product={
+    id, name, brand:document.getElementById('f-brand').value.trim(),
+    cat:document.getElementById('f-cat').value,
+    model:document.getElementById('f-model').value,
+    priceN:+document.getElementById('f-price').value||0,
+    oldN:+document.getElementById('f-old').value||0,
+    off:+document.getElementById('f-off').value||0,
+    rating:+document.getElementById('f-rating').value||0,
+    reviews:+document.getElementById('f-reviews').value||0,
+    stockN:+document.getElementById('f-stock').value||0,
+    inStock:document.getElementById('f-instock').checked,
+    desc:document.getElementById('f-desc').value.trim(),
+    viewer:document.getElementById('f-viewer').value,
+    embedUrl:document.getElementById('f-embed').value.trim()||null,
+    imgSrc:null, thumb:'', colors, specs,
+  };
+  const origId=document.getElementById('f-id-orig').value;
+  if(origId&&origId!==id) dbDelete(origId);
+  const result = dbUpsert(product);
+  if(!result.ok){ err.textContent=result.errors.join(' '); err.style.display='block'; return; }
+  closeModal();
+  refresh();
+  toast(editingId?'Produit modifié':'Produit ajouté','✓');
+};
+
+/* ---- NAV: render orders on tab switch ---- */
+document.querySelectorAll('[data-page]').forEach(a=>{
+  a.addEventListener('click',()=>{ if(a.dataset.page==='orders') renderOrders(); });
+});
+
+/* ---- INIT ---- */
+refresh();
+</script>
+</body></html>

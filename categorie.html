@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Catalogue — GearPlay Store</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script>(function(){var c=new URLSearchParams(location.search).get('cat');if(c)window.GP_ACTIVE_CAT=c;})();</script>
+  <meta name="description" content="Explorez notre catalogue gaming : consoles, manettes, smartphones, PC portables et appareils photo. Filtrez par marque, prix et disponibilité. Livraison 24-48h, garantie 2 ans.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://gearplay.fr/categorie.html">
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="GearPlay Store">
+  <meta property="og:title" content="Catalogue Gaming & High-Tech — GearPlay Store">
+  <meta property="og:description" content="Explorez notre catalogue gaming : consoles, manettes, smartphones, PC portables et appareils photo. Filtrez par marque, prix et disponibilité. Livraison 24-48h, garantie 2 ans.">
+  <meta property="og:url" content="https://gearplay.fr/categorie.html">
+  <meta property="og:image" content="https://gearplay.fr/assets/og-cover.jpg">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@GearPlay">
+  <meta name="twitter:title" content="Catalogue Gaming & High-Tech — GearPlay Store">
+  <meta name="twitter:description" content="Explorez notre catalogue gaming : consoles, manettes, smartphones, PC portables et appareils photo. Filtrez par marque, prix et disponibilité. Livraison 24-48h, garantie 2 ans.">
+  <meta name="twitter:image" content="https://gearplay.fr/assets/og-cover.jpg">
+  <!-- JSON-LD Organization -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"GearPlay Store","url":"https://gearplay.fr","logo":"https://gearplay.fr/assets/logo.png","contactPoint":{"@type":"ContactPoint","contactType":"customer service","availableLanguage":"French"},"sameAs":["https://instagram.com/gearplay","https://twitter.com/gearplay"]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Accueil","item":"https://gearplay.fr/index.html"},{"@type":"ListItem","position":2,"name":"Catalogue","item":"https://gearplay.fr/categorie.html"}]}</script>
+</head>
+<body>
+<div id="gp-header-mount"></div>
+<div id="gp-cart-mount"></div>
+<main style="max-width:1240px;margin:0 auto;padding:22px 28px 64px">
+  <nav class="breadcrumb"><a href="index.html">Accueil</a><span>/</span><span style="color:var(--text)">Catalogue</span></nav>
+  <div style="display:grid;grid-template-columns:262px 1fr;gap:28px;align-items:start">
+
+    <!-- SIDEBAR -->
+    <aside class="filter-sidebar">
+      <div class="filter-title">Filtres</div>
+      <div style="font:600 13.5px Inter;margin-bottom:10px">Marque</div>
+      <div id="brand-filters" style="display:flex;flex-direction:column;gap:9px;margin-bottom:22px"></div>
+      <div style="font:600 13.5px Inter;margin-bottom:10px">Prix maximum</div>
+      <input type="range" id="price-range" min="100" max="1800" step="50" value="1800">
+      <div style="font:400 13px Inter;color:var(--text2);margin:6px 0 22px">jusqu'à <span id="price-label">1 800 €</span></div>
+      <div style="font:600 13.5px Inter;margin-bottom:10px">Disponibilité</div>
+      <label class="form-label"><input type="checkbox" id="stock-filter" style="width:16px;height:16px;accent-color:var(--accent2)"> En stock uniquement</label>
+      <button id="reset-btn" style="margin-top:22px;width:100%;font:500 13px Inter;padding:11px;border-radius:8px;border:1px solid var(--hair);background:transparent;color:var(--text2);cursor:pointer">Réinitialiser</button>
+    </aside>
+
+    <!-- MAIN -->
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap">
+        <div>
+          <h1 class="clash" style="font:600 30px/1 'Clash Display',sans-serif;letter-spacing:-.01em">Catalogue</h1>
+          <div class="num" style="font:400 13.5px Inter;color:var(--text2);margin-top:6px"><span id="result-count"></span></div>
+        </div>
+        <label style="display:flex;align-items:center;gap:10px;font:400 13.5px Inter;color:var(--text2)">Trier
+          <select id="sort-select" class="form-select" style="width:auto;padding:9px 12px">
+            <option>Pertinence</option>
+            <option>Prix croissant</option>
+            <option>Prix décroissant</option>
+            <option>Mieux notés</option>
+          </select>
+        </label>
+      </div>
+      <div id="product-grid" class="product-grid-3"></div>
+      <div id="no-results" style="display:none;border:1px dashed var(--hair);border-radius:12px;padding:60px;text-align:center;color:var(--text2);font:400 15px Inter">
+        Aucun produit. <a href="#" id="reset-link">Réinitialiser les filtres</a>
+      </div>
+    </div>
+  </div>
+</main>
+<button id="back-to-top" aria-label="Haut de page" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<div id="gp-footer-mount"></div>
+<script>window.addEventListener('scroll',()=>{ var b=document.getElementById('back-to-top'); if(b) b.classList.toggle('show',window.scrollY>500); });</script>
+<script src="js/data.js"></script>
+<script src="js/db.js"></script>
+<script src="js/main.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const initCat = params.get('cat')||'';
+const initQ   = params.get('q')||'';
+if(initQ && document.getElementById('gp-search-input'))
+  document.getElementById('gp-search-input').value = initQ;
+
+let fBrands=[], fMax=1800, fStock=false, sort='Pertinence', searchQ=initQ;
+
+function fmt2(n){ return n.toLocaleString('fr-FR')+' €'; }
+function stars2(r){ const f=Math.round(r); return '★'.repeat(f)+'☆'.repeat(5-f); }
+
+function getBrands(){ return [...new Set(getProducts().map(p=>p.brand))]; }
+
+function renderBrandFilters(){
+  const brands=getBrands();
+  document.getElementById('brand-filters').innerHTML = brands.map(b=>{
+    const count=getProducts().filter(p=>p.brand===b).length;
+    const on=fBrands.includes(b);
+    return '<label class="form-label"><input type="checkbox" '+(on?'checked':'')+' data-brand="'+b+'" style="width:16px;height:16px;accent-color:var(--accent2)"><span style="flex:1">'+b+'</span><span style="font:400 12px Inter;color:var(--text2)">'+count+'</span></label>';
+  }).join('');
+  document.querySelectorAll('[data-brand]').forEach(cb=>{
+    cb.addEventListener('change',()=>{
+      const b=cb.dataset.brand;
+      fBrands=cb.checked?[...fBrands,b]:fBrands.filter(x=>x!==b);
+      renderProducts();
+    });
+  });
+}
+
+function getFiltered(){
+  const q=searchQ.trim().toLowerCase();
+  let res=getProducts().filter(p=>{
+    if(fBrands.length>0&&!fBrands.includes(p.brand))return false;
+    if(p.priceN>fMax)return false;
+    if(fStock&&!p.inStock)return false;
+    if(initCat&&p.cat!==initCat)return false;
+    if(q&&!(p.name+' '+p.brand+' '+p.cat).toLowerCase().includes(q))return false;
+    return true;
+  });
+  if(sort==='Prix croissant')res=res.sort((a,b)=>a.priceN-b.priceN);
+  else if(sort==='Prix décroissant')res=res.sort((a,b)=>b.priceN-a.priceN);
+  else if(sort==='Mieux notés')res=res.sort((a,b)=>b.rating-a.rating);
+  return res;
+}
+
+function renderProducts(){
+  const res=getFiltered();
+  const grid=document.getElementById('product-grid');
+  const noRes=document.getElementById('no-results');
+  const count=document.getElementById('result-count');
+  count.textContent=res.length+' produit'+(res.length>1?'s':'')+(searchQ?' · « '+searchQ+' »':'');
+  if(res.length===0){ grid.innerHTML=''; noRes.style.display='block'; }
+  else{ noRes.style.display='none'; grid.innerHTML=''; res.forEach(p=>grid.appendChild(productCard(p))); observeReveal(); }
+}
+
+function reset(){ fBrands=[]; fMax=1800; fStock=false; sort='Pertinence'; searchQ='';
+  document.getElementById('price-range').value=1800;
+  document.getElementById('price-label').textContent='1 800 €';
+  document.getElementById('stock-filter').checked=false;
+  document.getElementById('sort-select').value='Pertinence';
+  renderBrandFilters(); renderProducts();
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  renderBrandFilters(); renderProducts();
+  document.getElementById('price-range').addEventListener('input',e=>{
+    fMax=+e.target.value;
+    document.getElementById('price-label').textContent=fMax.toLocaleString('fr-FR')+' €';
+    renderProducts();
+  });
+  document.getElementById('stock-filter').addEventListener('change',e=>{ fStock=e.target.checked; renderProducts(); });
+  document.getElementById('sort-select').addEventListener('change',e=>{ sort=e.target.value; renderProducts(); });
+  document.getElementById('reset-btn').addEventListener('click',reset);
+  document.getElementById('reset-link').addEventListener('click',e=>{ e.preventDefault(); reset(); });
+  const searchInput=document.getElementById('gp-search-input');
+  if(searchInput){ searchInput.value=searchQ; searchInput.addEventListener('input',e=>{ searchQ=e.target.value; renderProducts(); }); }
+});
+</script>
+</body></html>

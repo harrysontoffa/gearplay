@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Contact — GearPlay Store</title>
+<meta name="description" content="Contactez l'équipe GearPlay Store : SAV français basé à Toulouse, joignable 7j/7 par email, téléphone ou formulaire.">
+<meta name="robots" content="index,follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="gp-header-mount"></div>
+<div id="gp-cart-mount"></div>
+<main style="max-width:1180px;margin:0 auto;padding:40px 28px 72px">
+  <nav class="breadcrumb"><a href="index.html">Accueil</a><span>/</span><span style="color:var(--text)">Contact</span></nav>
+  <h1 class="clash reveal" style="font:600 42px/1.05 'Clash Display',sans-serif;letter-spacing:-.015em">Nous contacter</h1>
+  <p class="reveal" style="font:400 16px/1.6 Inter;color:var(--text2);max-width:600px;margin:12px 0 40px">Une question sur une commande, un produit ou un conseil ? Notre équipe française vous répond sous 24h.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 380px;gap:40px;align-items:start" class="contact-grid">
+    <!-- FORM -->
+    <div class="reveal" style="border:1px solid var(--hair);border-radius:16px;background:var(--card);padding:32px">
+      <h2 style="font:600 20px Inter;margin-bottom:20px">Envoyez-nous un message</h2>
+      <form onsubmit="sendContact(event)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <input class="form-input" placeholder="Prénom" required>
+          <input class="form-input" placeholder="Nom" required>
+        </div>
+        <input class="form-input" type="email" placeholder="Adresse e-mail" required style="margin-bottom:14px">
+        <select class="form-select" style="margin-bottom:14px">
+          <option>Sujet — Question produit</option>
+          <option>Suivi de commande</option>
+          <option>Retour / remboursement</option>
+          <option>SAV / garantie</option>
+          <option>Autre</option>
+        </select>
+        <textarea class="form-input" rows="5" placeholder="Votre message…" required style="resize:vertical;margin-bottom:18px"></textarea>
+        <button type="submit" class="btn-primary" style="width:100%;display:flex;justify-content:center">Envoyer le message</button>
+        <div id="contact-success" style="display:none;margin-top:16px;padding:14px;border-radius:8px;background:color-mix(in srgb,var(--accent2) 15%,transparent);color:var(--accent2);font:500 14px Inter;text-align:center">✓ Message envoyé ! Nous vous répondons sous 24h.</div>
+      </form>
+    </div>
+
+    <!-- INFO -->
+    <aside style="display:flex;flex-direction:column;gap:16px">
+      
+      <div class="reveal" style="display:flex;gap:14px;padding:20px;border:1px solid var(--hair);border-radius:14px;background:var(--card)">
+        <span style="font-size:22px">📍</span>
+        <div><div style="font:600 14px Inter;color:var(--text);margin-bottom:4px">Adresse</div><div style="font:400 13.5px/1.5 Inter;color:var(--text2)">12 rue du Capitole<br>31000 Toulouse, France</div></div>
+      </div>
+      <div class="reveal" style="display:flex;gap:14px;padding:20px;border:1px solid var(--hair);border-radius:14px;background:var(--card)">
+        <span style="font-size:22px">📧</span>
+        <div><div style="font:600 14px Inter;color:var(--text);margin-bottom:4px">E-mail</div><div style="font:400 13.5px/1.5 Inter;color:var(--text2)">contact@gearplay.fr</div></div>
+      </div>
+      <div class="reveal" style="display:flex;gap:14px;padding:20px;border:1px solid var(--hair);border-radius:14px;background:var(--card)">
+        <span style="font-size:22px">📞</span>
+        <div><div style="font:600 14px Inter;color:var(--text);margin-bottom:4px">Téléphone</div><div style="font:400 13.5px/1.5 Inter;color:var(--text2)">+33 5 61 00 00 00</div></div>
+      </div>
+      <div class="reveal" style="display:flex;gap:14px;padding:20px;border:1px solid var(--hair);border-radius:14px;background:var(--card)">
+        <span style="font-size:22px">🕐</span>
+        <div><div style="font:600 14px Inter;color:var(--text);margin-bottom:4px">Horaires</div><div style="font:400 13.5px/1.5 Inter;color:var(--text2)">Lun-Sam : 9h-19h<br>Dim : 10h-18h</div></div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- FAQ -->
+  <section style="margin-top:64px">
+    <h2 class="clash reveal" style="font:600 30px/1 'Clash Display',sans-serif;letter-spacing:-.01em;margin-bottom:28px">Questions fréquentes</h2>
+    <div style="max-width:820px;display:flex;flex-direction:column;gap:12px">
+      
+      <details class="reveal faq-item" style="border:1px solid var(--hair);border-radius:12px;background:var(--card);overflow:hidden">
+        <summary style="padding:18px 20px;font:600 15px Inter;color:var(--text);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">Quels sont les délais de livraison ?<span class="faq-icon" style="color:var(--accent2);font-size:20px;transition:transform .25s">+</span></summary>
+        <div style="padding:0 20px 18px;font:400 14px/1.6 Inter;color:var(--text2)">Nous expédions sous 24h ouvrées. La livraison prend ensuite 24-48h en France métropolitaine. La livraison est offerte dès 49 € d'achat.</div>
+      </details>
+      <details class="reveal faq-item" style="border:1px solid var(--hair);border-radius:12px;background:var(--card);overflow:hidden">
+        <summary style="padding:18px 20px;font:600 15px Inter;color:var(--text);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">Vos produits sont-ils neufs ?<span class="faq-icon" style="color:var(--accent2);font-size:20px;transition:transform .25s">+</span></summary>
+        <div style="padding:0 20px 18px;font:400 14px/1.6 Inter;color:var(--text2)">Oui, absolument tous nos produits sont strictement neufs et scellés d'usine. Nous ne vendons aucun produit reconditionné.</div>
+      </details>
+      <details class="reveal faq-item" style="border:1px solid var(--hair);border-radius:12px;background:var(--card);overflow:hidden">
+        <summary style="padding:18px 20px;font:600 15px Inter;color:var(--text);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">Comment fonctionne la garantie ?<span class="faq-icon" style="color:var(--accent2);font-size:20px;transition:transform .25s">+</span></summary>
+        <div style="padding:0 20px 18px;font:400 14px/1.6 Inter;color:var(--text2)">Tous nos produits bénéficient de la garantie légale de 2 ans, plus la garantie constructeur. Notre SAV français gère toutes les démarches.</div>
+      </details>
+      <details class="reveal faq-item" style="border:1px solid var(--hair);border-radius:12px;background:var(--card);overflow:hidden">
+        <summary style="padding:18px 20px;font:600 15px Inter;color:var(--text);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">Puis-je retourner un produit ?<span class="faq-icon" style="color:var(--accent2);font-size:20px;transition:transform .25s">+</span></summary>
+        <div style="padding:0 20px 18px;font:400 14px/1.6 Inter;color:var(--text2)">Oui, vous disposez de 30 jours pour retourner un produit, sans justification. Le retour est gratuit et le remboursement intégral.</div>
+      </details>
+      <details class="reveal faq-item" style="border:1px solid var(--hair);border-radius:12px;background:var(--card);overflow:hidden">
+        <summary style="padding:18px 20px;font:600 15px Inter;color:var(--text);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">Le paiement est-il sécurisé ?<span class="faq-icon" style="color:var(--accent2);font-size:20px;transition:transform .25s">+</span></summary>
+        <div style="padding:0 20px 18px;font:400 14px/1.6 Inter;color:var(--text2)">Tous les paiements sont chiffrés SSL et protégés par 3D Secure. Nous ne conservons aucune donnée bancaire.</div>
+      </details>
+    </div>
+  </section>
+</main>
+<style>
+.faq-item[open] .faq-icon{transform:rotate(45deg)}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary:hover{color:var(--accent2)}
+@media(max-width:800px){.contact-grid{grid-template-columns:1fr!important}}
+</style>
+<button id="back-to-top" aria-label="Haut de page" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<div id="gp-footer-mount"></div>
+<script src="js/data.js"></script>
+<script src="js/db.js"></script>
+<script src="js/main.js"></script>
+<script>window.addEventListener('scroll',()=>{ const b=document.getElementById('back-to-top'); if(b) b.classList.toggle('show',window.scrollY>500); });</script>
+<script>
+function sendContact(e){ e.preventDefault(); document.getElementById('contact-success').style.display='block'; e.target.querySelectorAll('input,textarea,select').forEach(f=>f.value=''); setTimeout(()=>document.getElementById('contact-success').style.display='none',5000); }
+</script>
+</body></html>

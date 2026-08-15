@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fiche produit — GearPlay Store</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+  <meta name="robots" content="index, follow">
+  <meta id="seo-desc" name="description" content="Produit gaming neuf — GearPlay Store">
+  <meta id="og-title" property="og:title" content="GearPlay Store">
+  <meta id="og-desc" property="og:description" content="">
+  <meta id="og-url" property="og:url" content="https://gearplay.fr/produit.html">
+  <meta property="og:site_name" content="GearPlay Store">
+  <meta property="og:image" content="https://gearplay.fr/assets/og-cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta id="tw-title" name="twitter:title" content="GearPlay Store">
+  <meta id="tw-desc" name="twitter:description" content="">
+  <link id="canonical" rel="canonical" href="https://gearplay.fr/produit.html">
+  <script type="application/ld+json" id="ld-product">{}</script>
+  <script type="application/ld+json" id="ld-breadcrumb">{}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+<div id="gp-header-mount"></div>
+<div id="gp-cart-mount"></div>
+<main id="product-main" style="max-width:1240px;margin:0 auto;padding:22px 28px 64px"></main>
+<div id="gp-footer-mount"></div>
+<script src="js/data.js"></script>
+<script src="js/db.js"></script>
+<script src="js/main.js"></script>
+<script src="js/three-viewer.js"></script>
+<script>
+
+function injectSEO(p){
+  const url = 'https://gearplay.fr/produit.html?id='+p.id;
+  document.title = p.name + ' — GearPlay Store';
+  const set = (id,val) => { const el=document.getElementById(id); if(el) el.setAttribute('content',val); };
+  set('seo-desc', p.desc.slice(0,155));
+  set('og-title', p.name + ' — GearPlay Store');
+  set('og-desc', p.desc.slice(0,155));
+  set('og-url', url);
+  set('tw-title', p.name + ' — GearPlay Store');
+  set('tw-desc', p.desc.slice(0,155));
+  const canon = document.getElementById('canonical');
+  if(canon) canon.href = url;
+  // JSON-LD Product
+  const ldProd = {
+    "@context":"https://schema.org",
+    "@type":"Product",
+    "name": p.name,
+    "description": p.desc,
+    "brand":{"@type":"Brand","name":p.brand},
+    "offers":{
+      "@type":"Offer",
+      "priceCurrency":"EUR",
+      "price": p.priceN,
+      "availability": p.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "url": url
+    },
+    "aggregateRating":{
+      "@type":"AggregateRating",
+      "ratingValue": p.rating,
+      "reviewCount": p.reviews
+    }
+  };
+  const ldBC = {
+    "@context":"https://schema.org",
+    "@type":"BreadcrumbList",
+    "itemListElement":[
+      {"@type":"ListItem","position":1,"name":"Accueil","item":"https://gearplay.fr/index.html"},
+      {"@type":"ListItem","position":2,"name":p.cat,"item":"https://gearplay.fr/categorie.html?cat="+encodeURIComponent(p.cat)},
+      {"@type":"ListItem","position":3,"name":p.name,"item":url}
+    ]
+  };
+  const lp = document.getElementById('ld-product');
+  const lb = document.getElementById('ld-breadcrumb');
+  if(lp) lp.textContent = JSON.stringify(ldProd);
+  if(lb) lb.textContent = JSON.stringify(ldBC);
+}
+
+const params = new URLSearchParams(location.search);
+const pid = params.get('id')||'ctrl-edge';
+let prod, vIdx=0, qty=1, activeTab='specs';
+
+function renderPage(){
+  prod = getProducts().find(p=>p.id===pid)||getProducts()[0];
+  document.title = prod.name + ' — GearPlay Store';
+  const main = document.getElementById('product-main');
+  const inStock = prod.inStock;
+  const stockColor = inStock?'var(--ok)':'var(--err)';
+  const per4x = fmt(Math.round(prod.priceN/4));
+  const related = getProducts().filter(p=>p.id!==prod.id).slice(0,4);
+
+  main.innerHTML = `
+  <nav class="breadcrumb">
+    <a href="index.html">Accueil</a><span>/</span>
+    <a href="categorie.html?cat=${encodeURIComponent(prod.cat)}">${prod.cat}</a><span>/</span>
+    <span style="color:var(--text)">${prod.name}</span>
+  </nav>
+
+  <div style="display:grid;grid-template-columns:1.05fr .95fr;gap:36px;align-items:start">
+    <!-- VIEWER -->
+    <div style="position:sticky;top:100px">
+      <div id="viewer-wrap" style="position:relative;border-radius:16px;border:1px solid var(--hair);background:linear-gradient(180deg,var(--card),var(--bg));overflow:hidden;aspect-ratio:1/1">
+        <div style="position:absolute;inset:0;background:radial-gradient(90% 80% at 50% 20%,var(--glow),transparent 60%);opacity:.6;pointer-events:none;z-index:1"></div>
+        ${prod.viewer==='embed'
+          ? `<iframe title="${prod.name}" src="${prod.embedUrl}" frameborder="0" allow="autoplay; fullscreen; xr-spatial-tracking" style="display:block;width:100%;height:100%;border:0;position:relative;z-index:2"></iframe>`
+          : `<canvas id="gp-canvas" style="display:block;width:100%;height:100%;cursor:grab;position:relative;z-index:2"></canvas>
+             <div id="viewer-fallback" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;font:400 12px ui-monospace,monospace;color:var(--text2);z-index:3">${prod.model} 3D</div>`
+        }
+        <div style="position:absolute;left:16px;bottom:14px;font:400 11px/1 ui-monospace,monospace;color:var(--text2);background:color-mix(in srgb,var(--bg) 70%,transparent);padding:6px 9px;border-radius:6px;z-index:4">glisser · molette pour zoomer</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px" id="gallery"></div>
+    </div>
+
+    <!-- INFO -->
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="font:400 12px ui-monospace,monospace;color:var(--text2)">${prod.brand} · ${prod.cat}</span>
+        <span style="font:500 12.5px Inter;color:${stockColor}">● ${inStock?'En stock — expédié sous 24h':'Sur commande — 3 à 5 jours'}</span>
+      </div>
+      <h1 class="clash" style="font:600 38px/1.08 'Clash Display',sans-serif;margin:10px 0 0;letter-spacing:-.01em">${prod.name}</h1>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:12px">
+        <span style="font:500 15px/1 Inter;color:var(--cta-bg);letter-spacing:.1em">${stars(prod.rating)}</span>
+        <span style="font:400 13.5px Inter;color:var(--text2)">${prod.rating}/5 · ${prod.reviews} avis</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:12px;margin-top:20px">
+        <span class="clash num" style="font:600 40px 'Clash Display',sans-serif">${fmt(prod.priceN)}</span>
+        <span class="num" style="font:400 17px Inter;color:var(--text2);text-decoration:line-through">${fmt(prod.oldN)}</span>
+        <span class="badge">-${prod.off}%</span>
+      </div>
+      <div style="font:400 13px Inter;color:var(--text2);margin-top:8px">ou <strong class="num" style="color:var(--text)">${per4x}</strong>/mois en 4× sans frais</div>
+      <p style="font:400 15.5px/1.65 Inter;color:var(--text2);margin:18px 0 0">${prod.desc}</p>
+
+      <!-- VARIANTS -->
+      <div style="margin-top:26px">
+        <div style="font:600 13px Inter;color:var(--text);margin-bottom:12px">Coloris — <span id="variant-label" style="font-weight:400;color:var(--text2)">${prod.colors[0].label}</span></div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap" id="swatches"></div>
+      </div>
+
+      <!-- QTY -->
+      <div style="display:flex;align-items:center;gap:16px;margin-top:26px">
+        <span style="font:600 13px Inter">Quantité</span>
+        <div class="qty-ctrl">
+          <button id="qty-dec">−</button>
+          <span id="qty-display">1</span>
+          <button id="qty-inc">+</button>
+        </div>
+        <span style="font:400 13px Inter;color:var(--text2)">${prod.stockN} en stock</span>
+      </div>
+
+      <!-- CTAS -->
+      <div style="display:flex;gap:14px;margin-top:22px;flex-wrap:wrap">
+        <button id="add-to-cart" class="btn-primary" style="flex:1;min-width:200px">Ajouter au panier · ${fmt(prod.priceN)}</button>
+        <button id="buy-now" class="btn-secondary">Acheter maintenant</button>
+        <button id="wish-btn" class="gp-icon-btn wish-btn" data-id="${prod.id}" onclick="toggleWish('${prod.id}');renderWishBtn()" style="width:56px">${heartSVG(isWished(prod.id))}</button>
+      </div>
+
+      <!-- MINI TRUST -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px">
+        ${[['Livraison 24-48h'],['Garantie 2 ans'],['Paiement sécurisé'],['Retour 30 jours']].map(([t])=>`<div style="display:flex;align-items:center;gap:9px;padding:12px 13px;border:1px solid var(--hair);border-radius:10px;background:var(--card)"><span style="color:var(--accent2)">✓</span><span style="font:500 12.5px Inter">${t}</span></div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div style="margin-top:52px;border:1px solid var(--hair);border-radius:16px;background:var(--card);overflow:hidden">
+    <div class="tab-bar" id="tabs">
+      ${[['specs','Caractéristiques'],['reviews','Avis'],['ship','Livraison'],['warranty','Garantie']].map(([id,label])=>`<button class="tab-btn${id==='specs'?' active':''}" data-tab="${id}">${label}</button>`).join('')}
+    </div>
+    <div class="tab-panel active" id="tab-specs">
+      <div class="specs-grid" id="specs-table"></div>
+    </div>
+    <div class="tab-panel" id="tab-reviews">
+      <div style="display:grid;grid-template-columns:220px 1fr;gap:36px">
+        <div>
+          <div class="clash num" style="font:600 46px 'Clash Display',sans-serif">${prod.rating}<span style="font:400 18px Inter;color:var(--text2)">/5</span></div>
+          <div style="font:500 15px Inter;color:var(--cta-bg);letter-spacing:.1em">${stars(prod.rating)}</div>
+          <div style="font:400 13px Inter;color:var(--text2);margin-top:4px">${prod.reviews} avis vérifiés</div>
+          <div style="display:flex;flex-direction:column;gap:7px;margin-top:16px">
+            ${[[5,82],[4,12],[3,4],[2,1],[1,1]].map(([s,p])=>`<div class="star-bar"><span style="width:34px">${s}★</span><div class="star-bar-track"><div class="star-bar-fill" style="width:${p}%"></div></div><span style="width:34px;text-align:right">${p}%</span></div>`).join('')}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          ${[
+            ['Camille D.','Achat vérifié · il y a 3 j','★★★★★','"Exactement conforme à la vue 3D. Qualité de finition au rendez-vous, livraison ultra rapide."'],
+            ['Yanis B.','Achat vérifié · il y a 1 sem','★★★★★','"Rapport qualité-prix imbattable et emballage soigné. Rien à redire."'],
+            ['Sarah M.','Achat vérifié · il y a 2 sem','★★★★☆',"\"Très satisfaite. Un demi-point en moins car j'attendais un accessoire de plus dans la boîte.\""],
+          ].map(([n,m,s,t])=>`<div class="review-card" style="background:var(--bg)"><div style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:10px"><div class="review-avatar ph"></div><div><div style="font:600 13px Inter">${n}</div><div style="font:400 11.5px Inter;color:var(--text2)">${m}</div></div></div><span style="font:500 13px Inter;color:var(--cta-bg);letter-spacing:.1em">${s}</span></div><p style="font:400 14px/1.6 Inter;margin:12px 0 0">${t}</p></div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="tab-panel" id="tab-ship">
+      <div style="font:400 15px/1.7 Inter;color:var(--text2);max-width:720px">
+        <p style="margin:0 0 12px"><strong style="color:var(--text)">Livraison 24-48h</strong> en France métropolitaine, offerte dès 49 € d'achat. Expédition le jour même pour toute commande passée avant 15h.</p>
+        <p style="margin:0"><strong style="color:var(--text)">Suivi en temps réel</strong> par e-mail et SMS. Retrait en point relais ou livraison à domicile avec créneau au choix. Retour gratuit sous 30 jours.</p>
+      </div>
+    </div>
+    <div class="tab-panel" id="tab-warranty">
+      <div style="font:400 15px/1.7 Inter;color:var(--text2);max-width:720px">
+        <p style="margin:0 0 12px"><strong style="color:var(--text)">Garantie 2 ans</strong> constructeur incluse sur tout le matériel, strictement neuf et scellé d'usine. Aucun produit reconditionné.</p>
+        <p style="margin:0"><strong style="color:var(--text)">SAV français</strong> basé à Toulouse, joignable 7j/7. Prise en charge, échange ou remboursement sans frais en cas de défaut.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- VUS RÉCEMMENT -->
+  <div id="recent-section" style="margin-top:52px;display:none">
+    <h2 class="clash" style="font:600 26px/1 'Clash Display',sans-serif;margin:0 0 18px;letter-spacing:-.01em">Vus récemment</h2>
+    <div class="product-grid" id="recent-grid"></div>
+  </div>
+
+  <!-- RELATED -->
+  <div style="margin-top:52px">
+    <h2 class="clash" style="font:600 26px/1 'Clash Display',sans-serif;margin:0 0 18px;letter-spacing:-.01em">Produits associés</h2>
+    <div class="product-grid" id="related-grid"></div>
+  </div>
+  `;
+
+  // Swatches
+  const swatchContainer = document.getElementById('swatches');
+  prod.colors.forEach((c,i)=>{
+    const btn = document.createElement('button');
+    btn.className='swatch'+(i===0?' active':'');
+    btn.style.background=c.hex;
+    btn.title=c.label;
+    btn.onclick=()=>{ vIdx=i; document.getElementById('variant-label').textContent=c.label; document.querySelectorAll('.swatch').forEach((s,j)=>s.classList.toggle('active',j===i)); applyViewerColor(c.hex); };
+    swatchContainer.appendChild(btn);
+  });
+
+  // Gallery
+  const gallery = document.getElementById('gallery');
+  ['Face','Profil','Détail','Dos'].forEach((label,i)=>{
+    const btn = document.createElement('button');
+    btn.style.cssText='aspect-ratio:1/1;border-radius:10px;border:1px solid '+(i===0?'var(--cta-bg)':'var(--hair)')+';background:repeating-linear-gradient(135deg,var(--ph1) 0 8px,var(--ph2) 8px 16px);cursor:pointer;font:400 9px/1.2 ui-monospace,monospace;color:var(--text2);padding:8px;text-align:left';
+    btn.textContent=label;
+    btn.onclick=()=>{ gallery.querySelectorAll('button').forEach((b,j)=>b.style.borderColor=j===i?'var(--cta-bg)':'var(--hair)'); };
+    gallery.appendChild(btn);
+  });
+
+  // Specs
+  const specsTable = document.getElementById('specs-table');
+  specsTable.innerHTML = prod.specs.map(([k,v])=>`<div class="spec-row"><span style="color:var(--text2)">${k}</span><span>${v}</span></div>`).join('');
+
+  // Tabs
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Qty
+  document.getElementById('qty-inc').onclick=()=>{ qty++; document.getElementById('qty-display').textContent=qty; };
+  document.getElementById('qty-dec').onclick=()=>{ if(qty>1){ qty--; document.getElementById('qty-display').textContent=qty; } };
+
+  // Cart
+  document.getElementById('add-to-cart').onclick=()=>{ addToCart(prod.id,qty); document.getElementById('add-to-cart').textContent='✓ Ajouté'; setTimeout(()=>document.getElementById('add-to-cart').textContent='Ajouter au panier · '+fmt(prod.priceN),1500); };
+  document.getElementById('buy-now').onclick=()=>{ addToCart(prod.id,qty); location.href='paiement.html'; };
+
+  // Related
+  renderCards(getProducts().filter(p=>p.id!==prod.id).slice(0,4), 'related-grid');
+
+  // Vus récemment (avant d'ajouter le produit actuel)
+  const recentIds = getRecent().filter(id=>id!==prod.id);
+  const recentProds = recentIds.map(id=>getProducts().find(p=>p.id===id)).filter(Boolean).slice(0,4);
+  if(recentProds.length>0){
+    document.getElementById('recent-section').style.display='block';
+    renderCards(recentProds, 'recent-grid');
+  }
+  pushRecent(prod.id);
+
+  // SEO
+  injectSEO(prod);
+
+  // 3D
+  if(prod.viewer==='canvas'){
+    setTimeout(()=>initViewer('gp-canvas', prod.model, prod.colors[0].hex), 200);
+  }
+}
+
+function renderWishBtn(){
+  const btn=document.getElementById('wish-btn');
+  if(btn){ btn.classList.toggle('active',isWished(prod.id)); btn.innerHTML=heartSVG(isWished(prod.id)); }
+}
+
+document.addEventListener('DOMContentLoaded',renderPage);
+</script>
+</body></html>

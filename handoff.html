@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Handoff Backend — GearPlay Store</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>doc-page:not(:defined){visibility:hidden}</style>
+<script src="doc-page.js"></script>
+<style>
+  :root{--green:#16a34a;--red:#dc2626;--blue:#2563eb;--yellow:#d97706;--gray:#6b7280}
+  body{font-family:Inter,sans-serif}
+  h1{font-size:28px;font-weight:700;margin:0 0 6px;color:#111;letter-spacing:-.02em}
+  h2{font-size:17px;font-weight:700;margin:28px 0 10px;color:#111;padding-bottom:6px;border-bottom:2px solid #e5e7eb}
+  h3{font-size:14px;font-weight:700;margin:16px 0 6px;color:#111}
+  p,li{font-size:13.5px;line-height:1.65;color:#374151;margin:0 0 8px}
+  li{margin-bottom:4px}
+  ul{padding-left:18px;margin:0 0 10px}
+  code{font-family:ui-monospace,monospace;font-size:12px;background:#f3f4f6;padding:2px 6px;border-radius:4px;color:#111}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;margin-right:4px;vertical-align:middle}
+  .tag.red{background:#fee2e2;color:#991b1b}
+  .tag.green{background:#dcfce7;color:#166534}
+  .tag.blue{background:#dbeafe;color:#1e40af}
+  .tag.yellow{background:#fef3c7;color:#92400e}
+  .tag.gray{background:#f3f4f6;color:#374151}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px}
+  th{background:#f9fafb;font-weight:600;padding:8px 10px;text-align:left;border:1px solid #e5e7eb;font-size:12px;color:#374151}
+  td{padding:8px 10px;border:1px solid #e5e7eb;vertical-align:top;color:#374151}
+  .box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;margin-bottom:12px}
+  .box.warn{background:#fffbeb;border-color:#fcd34d}
+  .box.info{background:#eff6ff;border-color:#93c5fd}
+  .divider{border:none;border-top:1px solid #e5e7eb;margin:24px 0}
+  .logo{font-size:22px;font-weight:800;color:#111;letter-spacing:-.02em}
+  .logo span{color:#16a34a}
+  .meta{font-size:12px;color:#6b7280;margin-top:4px}
+</style>
+</head>
+<body>
+<doc-page size="a4" margin="0.65in">
+
+  <!-- COVER -->
+  <div style="text-align:center;padding:40px 0 32px">
+    <div class="logo">Gear<span>Play</span> Store</div>
+    <div style="font-size:22px;font-weight:700;margin:16px 0 6px;color:#111">Guide de finalisation Backend</div>
+    <div class="meta">Document technique · Version 1.0 · Août 2026</div>
+    <div class="meta">Préparé par : Développeur Frontend / IA</div>
+  </div>
+
+  <div class="box info">
+    <strong>À qui s'adresse ce document ?</strong> Au développeur backend ou à l'hébergeur chargé de mettre en production le site GearPlay Store. Ce document liste toutes les tâches restantes côté serveur, avec les spécifications techniques exactes à implémenter.
+  </div>
+
+  <h2>1. État actuel du projet</h2>
+  <p>Le frontend est <strong>100% terminé</strong> : toutes les pages HTML/CSS/JS, l'interface admin CRUD, le panier, le checkout, les pages légales et le SEO sont codés et fonctionnels. La base de données actuelle utilise <code>localStorage</code> (navigateur) — suffisant pour démo, insuffisant pour la production.</p>
+
+  <table>
+    <tr><th>Composant</th><th>État</th><th>Fichier</th></tr>
+    <tr><td>Pages boutique (6 écrans)</td><td><span class="tag green">✓ Terminé</span></td><td>index, categorie, produit, paiement</td></tr>
+    <tr><td>Admin CRUD produits</td><td><span class="tag green">✓ Terminé</span></td><td>admin.html + login.html</td></tr>
+    <tr><td>Base de données localStorage</td><td><span class="tag yellow">⚠ Démo uniquement</span></td><td>js/db.js</td></tr>
+    <tr><td>Paiement Stripe</td><td><span class="tag yellow">⚠ Clé manquante</span></td><td>paiement.html</td></tr>
+    <tr><td>Emails transactionnels</td><td><span class="tag yellow">⚠ Template prêt</span></td><td>email-confirmation.html</td></tr>
+    <tr><td>API backend (Node/PHP)</td><td><span class="tag red">✗ À créer</span></td><td>—</td></tr>
+    <tr><td>Base de données serveur</td><td><span class="tag red">✗ À créer</span></td><td>—</td></tr>
+    <tr><td>Hébergement + SSL</td><td><span class="tag red">✗ À déployer</span></td><td>—</td></tr>
+  </table>
+
+  <hr class="divider">
+
+  <h2>2. Architecture recommandée</h2>
+
+  <h3>Stack technique suggérée</h3>
+  <table>
+    <tr><th>Couche</th><th>Technologie</th><th>Alternative</th><th>Coût estimé</th></tr>
+    <tr><td>Frontend</td><td>HTML/CSS/JS statique (déjà codé)</td><td>—</td><td>Inclus</td></tr>
+    <tr><td>Backend API</td><td>Node.js + Express</td><td>PHP (Laravel)</td><td>—</td></tr>
+    <tr><td>Base de données</td><td>PostgreSQL</td><td>MySQL / MongoDB</td><td>~5–15 €/mois</td></tr>
+    <tr><td>Hébergement frontend</td><td>Netlify / Vercel (gratuit)</td><td>OVH, Infomaniak</td><td>0–10 €/mois</td></tr>
+    <tr><td>Hébergement backend</td><td>Railway / Render</td><td>VPS OVH</td><td>5–20 €/mois</td></tr>
+    <tr><td>Paiement</td><td>Stripe</td><td>PayPlug (France)</td><td>1,4–2,9% + 0,25€/tx</td></tr>
+    <tr><td>Emails</td><td>Brevo (ex-Sendinblue)</td><td>Sendgrid, Mailjet</td><td>Gratuit jusqu'à 300/j</td></tr>
+  </table>
+
+  <hr class="divider">
+
+  <h2>3. Schéma de base de données</h2>
+
+  <h3>Table <code>products</code></h3>
+  <div class="box" style="font-family:ui-monospace,monospace;font-size:11.5px;line-height:1.8;color:#111">
+    id VARCHAR(50) PRIMARY KEY<br>
+    name VARCHAR(255) NOT NULL<br>
+    brand VARCHAR(100) NOT NULL<br>
+    cat VARCHAR(100) NOT NULL<br>
+    model VARCHAR(50) NOT NULL<br>
+    price_n DECIMAL(10,2) NOT NULL<br>
+    old_n DECIMAL(10,2)<br>
+    off_pct INT DEFAULT 0<br>
+    rating DECIMAL(2,1) DEFAULT 0<br>
+    reviews INT DEFAULT 0<br>
+    stock_n INT DEFAULT 0<br>
+    in_stock BOOLEAN DEFAULT true<br>
+    description TEXT<br>
+    viewer VARCHAR(20) DEFAULT 'canvas'<br>
+    embed_url VARCHAR(500)<br>
+    colors JSONB NOT NULL DEFAULT '[]'<br>
+    specs JSONB NOT NULL DEFAULT '[]'<br>
+    created_at TIMESTAMP DEFAULT NOW()<br>
+    updated_at TIMESTAMP DEFAULT NOW()
+  </div>
+
+  <h3>Table <code>orders</code></h3>
+  <div class="box" style="font-family:ui-monospace,monospace;font-size:11.5px;line-height:1.8;color:#111">
+    id VARCHAR(20) PRIMARY KEY<br>
+    created_at TIMESTAMP DEFAULT NOW()<br>
+    customer_email VARCHAR(255) NOT NULL<br>
+    customer_name VARCHAR(255)<br>
+    shipping_address JSONB<br>
+    lines JSONB NOT NULL<br>
+    subtotal DECIMAL(10,2) NOT NULL<br>
+    discount DECIMAL(10,2) DEFAULT 0<br>
+    shipping DECIMAL(10,2) DEFAULT 0<br>
+    total DECIMAL(10,2) NOT NULL<br>
+    status VARCHAR(50) DEFAULT 'confirmée'<br>
+    stripe_payment_intent VARCHAR(255)<br>
+    promo_code VARCHAR(50)
+  </div>
+
+  <h3>Table <code>admins</code></h3>
+  <div class="box" style="font-family:ui-monospace,monospace;font-size:11.5px;line-height:1.8;color:#111">
+    id SERIAL PRIMARY KEY<br>
+    username VARCHAR(100) UNIQUE NOT NULL<br>
+    password_hash VARCHAR(255) NOT NULL<br>
+    created_at TIMESTAMP DEFAULT NOW()
+  </div>
+
+  <hr class="divider">
+
+  <h2>4. API REST à implémenter</h2>
+
+  <table>
+    <tr><th>Méthode</th><th>Endpoint</th><th>Description</th><th>Auth</th></tr>
+    <tr><td><span class="tag blue">GET</span></td><td>/api/products</td><td>Liste tous les produits</td><td>Non</td></tr>
+    <tr><td><span class="tag blue">GET</span></td><td>/api/products/:id</td><td>Détail d'un produit</td><td>Non</td></tr>
+    <tr><td><span class="tag green">POST</span></td><td>/api/products</td><td>Créer un produit</td><td>Admin</td></tr>
+    <tr><td><span class="tag yellow">PUT</span></td><td>/api/products/:id</td><td>Modifier un produit</td><td>Admin</td></tr>
+    <tr><td><span class="tag red">DELETE</span></td><td>/api/products/:id</td><td>Supprimer un produit</td><td>Admin</td></tr>
+    <tr><td><span class="tag green">POST</span></td><td>/api/orders</td><td>Créer une commande</td><td>Non</td></tr>
+    <tr><td><span class="tag blue">GET</span></td><td>/api/orders</td><td>Liste les commandes</td><td>Admin</td></tr>
+    <tr><td><span class="tag green">POST</span></td><td>/api/auth/login</td><td>Connexion admin (JWT)</td><td>Non</td></tr>
+    <tr><td><span class="tag green">POST</span></td><td>/api/stripe/intent</td><td>Créer un PaymentIntent Stripe</td><td>Non</td></tr>
+    <tr><td><span class="tag green">POST</span></td><td>/api/stripe/webhook</td><td>Webhook Stripe (confirmation)</td><td>Stripe</td></tr>
+    <tr><td><span class="tag green">POST</span></td><td>/api/email/confirm</td><td>Envoyer email confirmation</td><td>Interne</td></tr>
+  </table>
+
+  <hr class="divider">
+
+  <h2>5. Intégration Stripe — étapes</h2>
+
+  <div class="box warn">
+    <strong>⚠ Action requise :</strong> Le formulaire Stripe est déjà intégré dans <code>paiement.html</code>. Il manque uniquement votre clé publique côté frontend, et la création du PaymentIntent côté serveur.
+  </div>
+
+  <h3>Étape 1 — Obtenir vos clés Stripe</h3>
+  <ol style="font-size:13.5px;line-height:1.8;color:#374151;padding-left:18px;margin:0 0 12px">
+    <li>Créer un compte sur <strong>stripe.com</strong></li>
+    <li>Dashboard → Développeurs → Clés API</li>
+    <li>Copier la <strong>clé publiable</strong> (<code>pk_live_…</code>)</li>
+    <li>Copier la <strong>clé secrète</strong> (<code>sk_live_…</code>) — ne jamais l'exposer en frontend</li>
+  </ol>
+
+  <h3>Étape 2 — Remplacer dans paiement.html</h3>
+  <div class="box" style="font-family:ui-monospace,monospace;font-size:12px;color:#111">
+    const STRIPE_PUBLIC_KEY = '<strong>pk_live_VOTRE_CLE_ICI</strong>';
+  </div>
+
+  <h3>Étape 3 — Créer le PaymentIntent côté serveur</h3>
+  <div class="box" style="font-family:ui-monospace,monospace;font-size:11.5px;line-height:1.8;color:#111">
+    // Node.js / Express<br>
+    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);<br><br>
+    app.post('/api/stripe/intent', async (req, res) => {"{"}<br>
+    &nbsp;&nbsp;const {"{"} amount {"}"} = req.body; // en centimes<br>
+    &nbsp;&nbsp;const intent = await stripe.paymentIntents.create({"{"}<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;amount, currency: 'eur', automatic_payment_methods: {"{"} enabled: true {"}"}<br>
+    &nbsp;&nbsp;{"}"});<br>
+    &nbsp;&nbsp;res.json({"{"} clientSecret: intent.client_secret {"}"});<br>
+    {"}"});
+  </div>
+
+  <hr class="divider">
+
+  <h2>6. Emails transactionnels — Brevo</h2>
+
+  <ol style="font-size:13.5px;line-height:1.8;color:#374151;padding-left:18px;margin:0 0 12px">
+    <li>Créer un compte sur <strong>brevo.com</strong> (gratuit jusqu'à 300 emails/jour)</li>
+    <li>Récupérer votre <strong>clé API Brevo</strong></li>
+    <li>Importer le template <code>email-confirmation.html</code> dans Brevo → Templates</li>
+    <li>Remplacer les variables <code>{"{{ORDER_ID}}"}</code>, <code>{"{{ORDER_LINES}}"}</code>, <code>{"{{TOTAL}}"}</code> par les variables Brevo correspondantes</li>
+    <li>Appeler l'API Brevo depuis votre backend après chaque commande confirmée :</li>
+  </ol>
+  <div class="box" style="font-family:ui-monospace,monospace;font-size:11.5px;line-height:1.8;color:#111">
+    POST https://api.brevo.com/v3/smtp/email<br>
+    Authorization: api-key VOTRE_CLE_BREVO<br><br>
+    {"{"} "to": [{"{"}"email": customer_email{"}"}],<br>
+    &nbsp;&nbsp;"templateId": VOTRE_TEMPLATE_ID,<br>
+    &nbsp;&nbsp;"params": {"{"} "ORDER_ID": "GP-123456", "TOTAL": "179 €" {"}"} {"}"}
+  </div>
+
+  <hr class="divider">
+
+  <h2>7. Authentification admin sécurisée</h2>
+
+  <div class="box warn">
+    <strong>⚠ Actuel :</strong> Le login utilise <code>sessionStorage</code> — contournable. Pour la production, implémenter JWT côté serveur.
+  </div>
+
+  <ul>
+    <li>Hasher le mot de passe avec <code>bcrypt</code> (salt 12)</li>
+    <li>Générer un <strong>JWT</strong> signé avec <code>jsonwebtoken</code> à la connexion</li>
+    <li>Stocker le token dans <code>httpOnly cookie</code> (protection XSS)</li>
+    <li>Vérifier le JWT sur chaque requête admin via middleware Express</li>
+    <li>Durée de session recommandée : 8h avec refresh token</li>
+  </ul>
+
+  <hr class="divider">
+
+  <h2>8. Checklist de mise en production</h2>
+
+  <table>
+    <tr><th>Priorité</th><th>Tâche</th><th>Responsable</th></tr>
+    <tr><td><span class="tag red">Critique</span></td><td>Créer la base de données PostgreSQL</td><td>Dev Backend</td></tr>
+    <tr><td><span class="tag red">Critique</span></td><td>Développer l'API REST (Node.js/Express)</td><td>Dev Backend</td></tr>
+    <tr><td><span class="tag red">Critique</span></td><td>Remplacer localStorage par les appels API dans js/db.js</td><td>Dev Frontend</td></tr>
+    <tr><td><span class="tag red">Critique</span></td><td>Ajouter la clé publique Stripe dans paiement.html</td><td>Client + Dev</td></tr>
+    <tr><td><span class="tag red">Critique</span></td><td>Créer endpoint PaymentIntent côté serveur</td><td>Dev Backend</td></tr>
+    <tr><td><span class="tag red">Critique</span></td><td>Déployer le frontend (Netlify/Vercel)</td><td>Dev Backend</td></tr>
+    <tr><td><span class="tag red">Critique</span></td><td>Configurer le certificat SSL</td><td>Hébergeur</td></tr>
+    <tr><td><span class="tag yellow">Important</span></td><td>Configurer Brevo + connecter template email</td><td>Dev Backend</td></tr>
+    <tr><td><span class="tag yellow">Important</span></td><td>Implémenter JWT pour l'auth admin</td><td>Dev Backend</td></tr>
+    <tr><td><span class="tag yellow">Important</span></td><td>Ajouter images produits réelles</td><td>Client</td></tr>
+    <tr><td><span class="tag yellow">Important</span></td><td>Configurer le webhook Stripe</td><td>Dev Backend</td></tr>
+    <tr><td><span class="tag gray">Recommandé</span></td><td>Configurer Google Analytics / Plausible</td><td>Client</td></tr>
+    <tr><td><span class="tag gray">Recommandé</span></td><td>Mettre en place les sauvegardes DB automatiques</td><td>Dev Backend</td></tr>
+    <tr><td><span class="tag gray">Recommandé</span></td><td>Déposer le nom de domaine gearplay.fr</td><td>Client</td></tr>
+  </table>
+
+  <hr class="divider">
+
+  <h2>9. Variables d'environnement requises</h2>
+
+  <div class="box" style="font-family:ui-monospace,monospace;font-size:12px;line-height:2;color:#111">
+    # Stripe<br>
+    STRIPE_SECRET_KEY=sk_live_…<br>
+    STRIPE_WEBHOOK_SECRET=whsec_…<br><br>
+    # Base de données<br>
+    DATABASE_URL=postgresql://user:pass@host:5432/gearplay<br><br>
+    # Email Brevo<br>
+    BREVO_API_KEY=xkeysib-…<br>
+    EMAIL_FROM=contact@gearplay.fr<br><br>
+    # Sécurité<br>
+    JWT_SECRET=une_chaine_aleatoire_longue_et_securisee<br>
+    JWT_EXPIRES_IN=8h<br><br>
+    # App<br>
+    NODE_ENV=production<br>
+    PORT=3000<br>
+    FRONTEND_URL=https://gearplay.fr
+  </div>
+
+  <hr class="divider">
+
+  <div style="text-align:center;padding:20px 0;color:#6b7280;font-size:12px">
+    <strong style="color:#111">GearPlay Store</strong> · Document confidentiel · Préparé en août 2026<br>
+    Questions : contact@gearplay.fr
+  </div>
+
+</doc-page>
+</body>
+</html>

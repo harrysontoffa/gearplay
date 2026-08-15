@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guide de déploiement — GearPlay Store</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>doc-page:not(:defined){visibility:hidden}</style>
+<script src="doc-page.js"></script>
+<style>
+  body{font-family:Inter,sans-serif}
+  h1{font-size:26px;font-weight:700;margin:0 0 6px;color:#0f172a;letter-spacing:-.02em}
+  h2{font-size:18px;font-weight:700;margin:30px 0 12px;color:#0f172a;padding-bottom:8px;border-bottom:2px solid #16a34a}
+  h3{font-size:14.5px;font-weight:700;margin:20px 0 8px;color:#0f172a}
+  h4{font-size:13px;font-weight:700;margin:14px 0 6px;color:#374151}
+  p,li{font-size:13px;line-height:1.65;color:#374151;margin:0 0 8px}
+  li{margin-bottom:5px}
+  ul,ol{padding-left:20px;margin:0 0 10px}
+  code{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;background:#f1f5f9;padding:2px 6px;border-radius:4px;color:#0f172a}
+  pre{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:16px 18px;font-family:ui-monospace,Menlo,monospace;font-size:11px;line-height:1.7;overflow-x:auto;margin:0 0 14px;white-space:pre-wrap;word-break:break-word}
+  pre .c{color:#64748b}
+  pre .k{color:#7dd3fc}
+  pre .s{color:#a5f3a0}
+  pre .fn{color:#fcd34d}
+  .step{display:flex;gap:14px;margin-bottom:8px}
+  .step-n{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:#16a34a;color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
+  .tag{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:6px;vertical-align:middle}
+  .tag.time{background:#dbeafe;color:#1e40af}
+  .tag.req{background:#fee2e2;color:#991b1b}
+  .box{border-radius:10px;padding:14px 16px;margin-bottom:14px;font-size:12.5px;line-height:1.6}
+  .box.info{background:#eff6ff;border:1px solid #93c5fd;color:#1e3a5f}
+  .box.warn{background:#fffbeb;border:1px solid #fcd34d;color:#78350f}
+  .box.ok{background:#f0fdf4;border:1px solid #86efac;color:#14532d}
+  table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px}
+  th{background:#f8fafc;font-weight:600;padding:8px 10px;text-align:left;border:1px solid #e2e8f0;font-size:11px;color:#475569}
+  td{padding:8px 10px;border:1px solid #e2e8f0;vertical-align:top}
+  .divider{border:none;border-top:1px solid #e2e8f0;margin:22px 0}
+  .logo{font-size:22px;font-weight:800;color:#0f172a;letter-spacing:-.02em}
+  .logo span{color:#16a34a}
+  .meta{font-size:12px;color:#64748b}
+  .filetree{font-family:ui-monospace,monospace;font-size:11px;line-height:1.75;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;color:#334155}
+  .kbd{font-family:ui-monospace,monospace;font-size:11px;background:#e2e8f0;padding:1px 5px;border-radius:3px}
+</style>
+</head>
+<body>
+<doc-page size="a4" margin="0.6in">
+
+  <!-- COVER -->
+  <div style="text-align:center;padding:36px 0 28px">
+    <div class="logo">Gear<span>Play</span> Store</div>
+    <div style="font-size:24px;font-weight:700;margin:16px 0 6px;color:#0f172a">Guide de déploiement complet</div>
+    <div class="meta">Environnement Docker · Prisma · PostgreSQL · Node.js</div>
+    <div class="meta">Version 1.0 · Août 2026 · Document technique pas-à-pas</div>
+  </div>
+
+  <div class="box info">
+    <strong>Objectif de ce document.</strong> Vous guider, étape par étape, pour transformer le site GearPlay (actuellement en localStorage) en une vraie boutique en ligne avec base de données PostgreSQL, API backend et déploiement Docker. Aucune connaissance préalable de Docker ou Prisma n'est supposée : chaque commande est expliquée.
+  </div>
+
+  <h2>1. Vue d'ensemble de l'architecture</h2>
+  <p>Le site final se compose de trois briques qui tournent ensemble :</p>
+  <table>
+    <tr><th>Brique</th><th>Rôle</th><th>Technologie</th></tr>
+    <tr><td><strong>Frontend</strong></td><td>Les pages HTML/CSS/JS déjà livrées</td><td>Fichiers statiques (Netlify / Nginx)</td></tr>
+    <tr><td><strong>Backend API</strong></td><td>Expose les produits, commandes, auth</td><td>Node.js + Express + Prisma</td></tr>
+    <tr><td><strong>Base de données</strong></td><td>Stocke produits, commandes, admins</td><td>PostgreSQL (dans Docker)</td></tr>
+  </table>
+  <p>Docker permet de lancer la base de données et le backend avec <strong>une seule commande</strong>, sans rien installer manuellement sur votre machine (à part Docker lui-même).</p>
+
+  <div class="box ok"><strong>Résultat final :</strong> vous tapez <code>docker compose up</code> et tout le site tourne en local sur <code>http://localhost:8080</code>. Pour la mise en ligne, on pousse la même configuration sur un serveur.</div>
+
+  <h2>2. Prérequis à installer <span class="tag time">~30 min</span></h2>
+  <div class="step"><div class="step-n">1</div><div><strong>Node.js 20+</strong> — moteur JavaScript côté serveur.<br>Télécharger sur <code>nodejs.org</code> (version LTS). Vérifier : <code>node --version</code></div></div>
+  <div class="step"><div class="step-n">2</div><div><strong>Docker Desktop</strong> — pour la base de données et les conteneurs.<br>Télécharger sur <code>docker.com/products/docker-desktop</code>. Vérifier : <code>docker --version</code></div></div>
+  <div class="step"><div class="step-n">3</div><div><strong>Un éditeur de code</strong> — VS Code recommandé (<code>code.visualstudio.com</code>).</div></div>
+  <div class="step"><div class="step-n">4</div><div><strong>Git</strong> (optionnel mais recommandé) — <code>git-scm.com</code>.</div></div>
+
+  <h2>3. Structure du projet backend</h2>
+  <p>Créez un nouveau dossier <code>gearplay-backend/</code> à côté du dossier <code>gearplay/</code> (le frontend). Organisez-le ainsi :</p>
+  <div class="filetree">gearplay-backend/
+├── prisma/
+│   ├── schema.prisma       <span style="color:#94a3b8"># définition de la base de données</span>
+│   └── seed.js             <span style="color:#94a3b8"># données initiales (les 6 produits)</span>
+├── src/
+│   ├── index.js            <span style="color:#94a3b8"># serveur Express (point d'entrée)</span>
+│   ├── routes/
+│   │   ├── products.js     <span style="color:#94a3b8"># CRUD produits</span>
+│   │   ├── orders.js       <span style="color:#94a3b8"># commandes</span>
+│   │   ├── auth.js         <span style="color:#94a3b8"># connexion admin (JWT)</span>
+│   │   └── stripe.js       <span style="color:#94a3b8"># paiement</span>
+│   └── middleware/
+│       └── auth.js         <span style="color:#94a3b8"># vérification du token admin</span>
+├── .env                    <span style="color:#94a3b8"># variables secrètes</span>
+├── Dockerfile              <span style="color:#94a3b8"># image du backend</span>
+├── docker-compose.yml      <span style="color:#94a3b8"># orchestration (DB + backend + front)</span>
+└── package.json</div>
+
+  <h2>4. Initialiser le projet Node</h2>
+  <p>Ouvrez un terminal dans <code>gearplay-backend/</code> et lancez :</p>
+  <pre><span class="c"># Créer le package.json</span>
+npm init -y
+
+<span class="c"># Installer les dépendances</span>
+npm install express cors dotenv @prisma/client bcryptjs jsonwebtoken stripe
+npm install --save-dev prisma nodemon
+
+<span class="c"># Initialiser Prisma</span>
+npx prisma init</pre>
+  <p>La dernière commande crée le dossier <code>prisma/</code> et un fichier <code>.env</code>.</p>
+
+  <h2>5. Définir la base de données avec Prisma</h2>
+  <p>Prisma est un « ORM » : vous décrivez vos tables en langage simple, et il génère la base et le code d'accès. Remplacez le contenu de <code>prisma/schema.prisma</code> par :</p>
+  <pre><span class="k">generator</span> client {
+  provider = <span class="s">"prisma-client-js"</span>
+}
+<span class="k">datasource</span> db {
+  provider = <span class="s">"postgresql"</span>
+  url      = env(<span class="s">"DATABASE_URL"</span>)
+}
+
+<span class="k">model</span> Product {
+  id          String   <span class="fn">@id</span>
+  name        String
+  brand       String
+  cat         String
+  model       String
+  priceN      Float
+  oldN        Float?
+  off         Int      <span class="fn">@default(0)</span>
+  rating      Float    <span class="fn">@default(0)</span>
+  reviews     Int      <span class="fn">@default(0)</span>
+  stockN      Int      <span class="fn">@default(0)</span>
+  inStock     Boolean  <span class="fn">@default(true)</span>
+  description String?
+  viewer      String   <span class="fn">@default("canvas")</span>
+  embedUrl    String?
+  colors      Json
+  specs       Json
+  createdAt   DateTime <span class="fn">@default(now())</span>
+  updatedAt   DateTime <span class="fn">@updatedAt</span>
+}
+
+<span class="k">model</span> Order {
+  id         String   <span class="fn">@id</span>
+  createdAt  DateTime <span class="fn">@default(now())</span>
+  email      String
+  name       String?
+  address    Json?
+  lines      Json
+  subtotal   Float
+  discount   Float    <span class="fn">@default(0)</span>
+  shipping   Float    <span class="fn">@default(0)</span>
+  total      Float
+  status     String   <span class="fn">@default("confirmée")</span>
+  stripePi   String?
+  promoCode  String?
+}
+
+<span class="k">model</span> Admin {
+  id           Int    <span class="fn">@id @default(autoincrement())</span>
+  username     String <span class="fn">@unique</span>
+  passwordHash String
+}</pre>
+
+  <h2>6. Configurer Docker</h2>
+  <p>Docker Compose lance PostgreSQL + le backend ensemble. Créez <code>docker-compose.yml</code> :</p>
+  <pre><span class="k">services</span>:
+  <span class="c"># --- Base de données PostgreSQL ---</span>
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: gearplay
+      POSTGRES_PASSWORD: motdepasse_secret
+      POSTGRES_DB: gearplay
+    ports:
+      - <span class="s">"5432:5432"</span>
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+
+  <span class="c"># --- Backend API Node ---</span>
+  api:
+    build: .
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: <span class="s">"postgresql://gearplay:motdepasse_secret@db:5432/gearplay"</span>
+      JWT_SECRET: <span class="s">"changez_cette_chaine"</span>
+      STRIPE_SECRET_KEY: <span class="s">"sk_live_votre_cle"</span>
+    ports:
+      - <span class="s">"3000:3000"</span>
+
+  <span class="c"># --- Frontend (Nginx sert les fichiers statiques) ---</span>
+  web:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - <span class="s">"8080:80"</span>
+    volumes:
+      - ../gearplay:/usr/share/nginx/html:ro
+
+<span class="k">volumes</span>:
+  dbdata:</pre>
+
+  <p>Puis créez le <code>Dockerfile</code> (image du backend) :</p>
+  <pre><span class="k">FROM</span> node:20-alpine
+<span class="k">WORKDIR</span> /app
+<span class="k">COPY</span> package*.json ./
+<span class="k">RUN</span> npm install
+<span class="k">COPY</span> . .
+<span class="k">RUN</span> npx prisma generate
+<span class="k">EXPOSE</span> 3000
+<span class="k">CMD</span> [<span class="s">"sh"</span>, <span class="s">"-c"</span>, <span class="s">"npx prisma migrate deploy && node src/index.js"</span>]</pre>
+
+  <h2>7. Le serveur Express (src/index.js)</h2>
+  <pre><span class="k">const</span> express = require(<span class="s">'express'</span>);
+<span class="k">const</span> cors = require(<span class="s">'cors'</span>);
+require(<span class="s">'dotenv'</span>).config();
+<span class="k">const</span> app = express();
+app.use(cors());
+app.use(express.json());
+
+app.use(<span class="s">'/api/products'</span>, require(<span class="s">'./routes/products'</span>));
+app.use(<span class="s">'/api/orders'</span>, require(<span class="s">'./routes/orders'</span>));
+app.use(<span class="s">'/api/auth'</span>, require(<span class="s">'./routes/auth'</span>));
+app.use(<span class="s">'/api/stripe'</span>, require(<span class="s">'./routes/stripe'</span>));
+
+app.listen(3000, () => console.log(<span class="s">'API sur http://localhost:3000'</span>));</pre>
+
+  <h4>Exemple : routes/products.js (le CRUD complet)</h4>
+  <pre><span class="k">const</span> router = require(<span class="s">'express'</span>).Router();
+<span class="k">const</span> { PrismaClient } = require(<span class="s">'@prisma/client'</span>);
+<span class="k">const</span> prisma = <span class="k">new</span> PrismaClient();
+<span class="k">const</span> auth = require(<span class="s">'../middleware/auth'</span>);
+
+<span class="c">// Lister (public)</span>
+router.get(<span class="s">'/'</span>, <span class="k">async</span> (req, res) => res.json(<span class="k">await</span> prisma.product.findMany()));
+
+<span class="c">// Détail (public)</span>
+router.get(<span class="s">'/:id'</span>, <span class="k">async</span> (req, res) => {
+  <span class="k">const</span> p = <span class="k">await</span> prisma.product.findUnique({ where:{ id:req.params.id }});
+  p ? res.json(p) : res.status(404).json({ error:<span class="s">'Introuvable'</span> });
+});
+
+<span class="c">// Créer (admin)</span>
+router.post(<span class="s">'/'</span>, auth, <span class="k">async</span> (req, res) =>
+  res.json(<span class="k">await</span> prisma.product.create({ data:req.body })));
+
+<span class="c">// Modifier (admin)</span>
+router.put(<span class="s">'/:id'</span>, auth, <span class="k">async</span> (req, res) =>
+  res.json(<span class="k">await</span> prisma.product.update({ where:{ id:req.params.id }, data:req.body })));
+
+<span class="c">// Supprimer (admin)</span>
+router.delete(<span class="s">'/:id'</span>, auth, <span class="k">async</span> (req, res) => {
+  <span class="k">await</span> prisma.product.delete({ where:{ id:req.params.id }});
+  res.json({ ok:<span class="k">true</span> });
+});
+
+module.exports = router;</pre>
+
+  <h2>8. Lancer le tout <span class="tag req">étape clé</span></h2>
+  <p>Dans le dossier <code>gearplay-backend/</code>, exécutez dans l'ordre :</p>
+  <div class="step"><div class="step-n">1</div><div>Démarrer la base + le backend + le front :<br><pre style="margin-top:6px">docker compose up -d</pre></div></div>
+  <div class="step"><div class="step-n">2</div><div>Créer les tables dans la base (première fois seulement) :<br><pre style="margin-top:6px">docker compose exec api npx prisma migrate dev --name init</pre></div></div>
+  <div class="step"><div class="step-n">3</div><div>Injecter les données initiales (les 6 produits) :<br><pre style="margin-top:6px">docker compose exec api node prisma/seed.js</pre></div></div>
+  <div class="step"><div class="step-n">4</div><div>Ouvrir le site : <code>http://localhost:8080</code> — l'API tourne sur <code>http://localhost:3000</code>.</div></div>
+
+  <div class="box ok"><strong>Commandes utiles au quotidien :</strong><br>
+  • <code>docker compose up -d</code> → démarrer<br>
+  • <code>docker compose down</code> → arrêter<br>
+  • <code>docker compose logs -f api</code> → voir les logs du backend<br>
+  • <code>docker compose exec api npx prisma studio</code> → interface visuelle de la base (sur port 5555)</div>
+
+  <h2>9. Connecter le frontend au backend</h2>
+  <p>Actuellement, <code>js/db.js</code> lit dans localStorage. Il faut le faire lire dans l'API. Remplacez les fonctions par des appels <code>fetch</code> :</p>
+  <pre><span class="k">const</span> API = <span class="s">'http://localhost:3000/api'</span>; <span class="c">// en prod : https://api.gearplay.fr/api</span>
+
+<span class="k">async function</span> <span class="fn">dbGet</span>(){
+  <span class="k">const</span> r = <span class="k">await</span> fetch(API + <span class="s">'/products'</span>);
+  <span class="k">return</span> r.json();
+}
+<span class="k">async function</span> <span class="fn">dbUpsert</span>(p, token){
+  <span class="k">const</span> method = p._isNew ? <span class="s">'POST'</span> : <span class="s">'PUT'</span>;
+  <span class="k">const</span> url = p._isNew ? API+<span class="s">'/products'</span> : API+<span class="s">'/products/'</span>+p.id;
+  <span class="k">await</span> fetch(url, { method, headers:{
+    <span class="s">'Content-Type'</span>:<span class="s">'application/json'</span>, <span class="s">'Authorization'</span>:<span class="s">'Bearer '</span>+token
+  }, body: JSON.stringify(p) });
+}</pre>
+  <div class="box warn"><strong>Attention :</strong> les pages qui appellent <code>dbGet()</code> doivent devenir <code>async</code> (utiliser <code>await dbGet()</code>). C'est le principal travail d'adaptation du frontend. Un développeur le fait en 1-2 jours.</div>
+
+  <h2>10. Mise en ligne (production)</h2>
+  <table>
+    <tr><th>Élément</th><th>Où l'héberger</th><th>Comment</th></tr>
+    <tr><td>Frontend</td><td>Netlify / Vercel</td><td>Glisser-déposer le dossier <code>gearplay/</code></td></tr>
+    <tr><td>Backend + DB</td><td>Railway / Render</td><td>Connecter le repo Git, ils détectent le <code>docker-compose</code></td></tr>
+    <tr><td>Nom de domaine</td><td>OVH / Gandi</td><td>Pointer <code>gearplay.fr</code> → Netlify, <code>api.gearplay.fr</code> → Railway</td></tr>
+    <tr><td>SSL (HTTPS)</td><td>Automatique</td><td>Fourni gratuitement par Netlify et Railway</td></tr>
+  </table>
+  <h4>Étapes de publication</h4>
+  <ol>
+    <li>Pousser le code sur un dépôt <strong>GitHub</strong> (frontend + backend).</li>
+    <li>Sur <strong>Railway</strong> : « New Project » → « Deploy from GitHub » → sélectionner le repo backend. Railway crée automatiquement la base PostgreSQL et lance le conteneur.</li>
+    <li>Renseigner les variables d'environnement sur Railway (voir section 11).</li>
+    <li>Sur <strong>Netlify</strong> : glisser-déposer <code>gearplay/</code> (ou connecter le repo). Modifier la constante <code>API</code> dans <code>db.js</code> pour pointer vers l'URL Railway.</li>
+    <li>Acheter le domaine, le brancher sur Netlify (le SSL s'active seul).</li>
+    <li>Configurer Stripe en mode « live » et coller la clé <code>pk_live_</code> dans <code>paiement.html</code>.</li>
+  </ol>
+
+  <h2>11. Variables d'environnement (.env)</h2>
+  <pre><span class="c"># Base de données (généré par Railway en prod)</span>
+DATABASE_URL="postgresql://gearplay:motdepasse@db:5432/gearplay"
+
+<span class="c"># Sécurité admin</span>
+JWT_SECRET="une_longue_chaine_aleatoire_de_64_caracteres_minimum"
+JWT_EXPIRES_IN="8h"
+
+<span class="c"># Stripe (fourni par votre client)</span>
+STRIPE_SECRET_KEY="sk_live_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+
+<span class="c"># Email Brevo</span>
+BREVO_API_KEY="xkeysib-..."
+EMAIL_FROM="contact@gearplay.fr"
+
+<span class="c"># Général</span>
+NODE_ENV="production"
+PORT=3000
+FRONTEND_URL="https://gearplay.fr"</pre>
+
+  <h2>12. Checklist finale avant lancement</h2>
+  <table>
+    <tr><th>✓</th><th>Tâche</th><th>Qui</th></tr>
+    <tr><td>☐</td><td>Docker Desktop installé et fonctionnel</td><td>Vous</td></tr>
+    <tr><td>☐</td><td>Backend créé (sections 3 à 7)</td><td>Développeur</td></tr>
+    <tr><td>☐</td><td><code>docker compose up</code> fonctionne en local</td><td>Développeur</td></tr>
+    <tr><td>☐</td><td><code>db.js</code> connecté à l'API</td><td>Développeur</td></tr>
+    <tr><td>☐</td><td>Compte Stripe créé + clés récupérées</td><td>Vous / Client</td></tr>
+    <tr><td>☐</td><td>Compte Brevo + template email importé</td><td>Vous</td></tr>
+    <tr><td>☐</td><td>Repo GitHub créé</td><td>Développeur</td></tr>
+    <tr><td>☐</td><td>Backend déployé sur Railway</td><td>Développeur</td></tr>
+    <tr><td>☐</td><td>Frontend déployé sur Netlify</td><td>Vous / Développeur</td></tr>
+    <tr><td>☐</td><td>Nom de domaine acheté et branché</td><td>Vous</td></tr>
+    <tr><td>☐</td><td>SSL actif (cadenas HTTPS)</td><td>Automatique</td></tr>
+    <tr><td>☐</td><td>Test d'une commande complète de bout en bout</td><td>Vous</td></tr>
+  </table>
+
+  <div class="box info"><strong>Estimation de temps.</strong> Pour un développeur back familier de Node : mise en place complète du backend + Docker + connexion frontend ≈ <strong>3 à 5 jours</strong>. Déploiement et domaine ≈ <strong>1 jour</strong>. Sans développeur, vous pouvez déjà publier la version localStorage (Netlify Drop) en <strong>30 minutes</strong>.</div>
+
+  <hr class="divider">
+  <div style="text-align:center;padding:16px 0;color:#64748b;font-size:11.5px">
+    <strong style="color:#0f172a">GearPlay Store</strong> · Guide de déploiement · Août 2026<br>
+    Généré pour accompagner la mise en production · contact@gearplay.fr
+  </div>
+
+</doc-page>
+</body>
+</html>
