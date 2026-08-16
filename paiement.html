@@ -317,9 +317,7 @@ async function handlePay(){
   dbDecrementStock(cart);
   localStorage.removeItem('gp_cart');
   document.getElementById('order-no').textContent=no;
-  document.getElementById('checkout-screen').style.display='none';
-  document.getElementById('confirm-screen').style.display='block';
-  window.scrollTo(0,0);
+  window.location.href = 'attente.html?order=' + encodeURIComponent(no);
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
