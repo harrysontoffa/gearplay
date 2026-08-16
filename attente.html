@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Validation en cours — GearPlay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── Page d'attente webhook GearPlay ── */
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg, #0e1013);
+      font-family: Inter, system-ui, sans-serif;
+      color: var(--text, #f2f4f7);
+    }
+
+    .wait-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      padding: 52px 44px;
+      border-radius: 20px;
+      border: 1px solid var(--hair, #23262d);
+      background: var(--surface, #14171c);
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 24px 64px rgba(0,0,0,.45);
+    }
+
+    /* ── Logo GearPlay (texte) ── */
+    .wait-logo {
+      font: 600 18px/1 'Clash Display', sans-serif;
+      letter-spacing: -.01em;
+      color: var(--text, #f2f4f7);
+    }
+    .wait-logo span {
+      color: var(--cta-bg, #c6f551);
+    }
+
+    /* ── Spinner ── */
+    .spinner-wrap {
+      position: relative;
+      width: 80px;
+      height: 80px;
+    }
+
+    /* Cercle de fond fixe */
+    .spinner-track {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 4px solid var(--hair, #23262d);
+    }
+
+    /* Cercle animé */
+    .spinner {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 4px solid transparent;
+      border-top-color: var(--cta-bg, #c6f551);
+      animation: spin 1s linear infinite;
+    }
+
+    /* Icône cadenas au centre */
+    .spinner-icon {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--cta-bg, #c6f551);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── Textes ── */
+    .wait-title {
+      font: 600 22px/1.2 'Clash Display', sans-serif;
+      margin: 0;
+    }
+
+    .wait-msg {
+      font: 400 14px/1.6 Inter;
+      color: var(--text2, #8a8f9a);
+      margin: 0;
+      min-height: 44px;
+      transition: opacity .3s;
+    }
+
+    /* ── Barre de progression (durée totale = 6 min) ── */
+    .progress-wrap {
+      width: 100%;
+      height: 4px;
+      border-radius: 99px;
+      background: var(--hair, #23262d);
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      border-radius: 99px;
+      background: var(--cta-bg, #c6f551);
+      /* 360 secondes = 6 minutes */
+      animation: fill 360s linear forwards;
+    }
+
+    @keyframes fill {
+      to { width: 100%; }
+    }
+
+    /* ── Badge sécurité ── */
+    .security-badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font: 400 12px Inter;
+      color: var(--text2, #8a8f9a);
+    }
+
+    /* ── Timer ── */
+    .wait-timer {
+      font: 500 13px/1 'ui-monospace', monospace;
+      color: var(--text2, #8a8f9a);
+      letter-spacing: .04em;
+    }
+  </style>
+</head>
+<body>
+
+<div class="wait-card">
+
+  <!-- Logo -->
+  <div class="wait-logo">Gear<span>Play</span></div>
+
+  <!-- Spinner -->
+  <div class="spinner-wrap">
+    <div class="spinner-track"></div>
+    <div class="spinner"></div>
+    <div class="spinner-icon">
+      <!-- Icône cadenas SVG -->
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Titre -->
+  <p class="wait-title">Validation en cours…</p>
+
+  <!-- Message dynamique -->
+  <p class="wait-msg" id="wait-msg">Connexion à votre banque sécurisée…</p>
+
+  <!-- Barre de progression -->
+  <div class="progress-wrap">
+    <div class="progress-bar"></div>
+  </div>
+
+  <!-- Timer -->
+  <div class="wait-timer" id="wait-timer">--:--</div>
+
+  <!-- Badge sécurité -->
+  <div class="security-badge">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+    Paiement chiffré SSL · 3D Secure
+  </div>
+
+</div>
+
+<script>
+  // ── Durée totale de simulation : 6 minutes (360 secondes) ──
+  const TOTAL_SECONDS = 360;
+
+  // ── Messages qui changent toutes les X secondes ──
+  const MESSAGES = [
+    { at: 0,   text: 'Connexion à votre banque sécurisée…' },
+    { at: 30,  text: 'Vérification de vos informations…' },
+    { at: 60,  text: 'Authentification 3D Secure en cours…' },
+    { at: 120, text: 'En attente de confirmation de votre banque…' },
+    { at: 180, text: 'Validation du paiement…' },
+    { at: 240, text: 'Finalisation de la commande…' },
+    { at: 300, text: 'Presque terminé…' },
+  ];
+
+  // ── Récupère le numéro de commande passé dans l'URL ──
+  // Ex: attente.html?order=GP-482910
+  const params  = new URLSearchParams(window.location.search);
+  const orderNo = params.get('order') || '';
+
+  // ── Timer countdown ──
+  let remaining = TOTAL_SECONDS;
+  const timerEl = document.getElementById('wait-timer');
+  const msgEl   = document.getElementById('wait-msg');
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  function tick(){
+    // Affiche le temps restant MM:SS
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    timerEl.textContent = pad(m) + ':' + pad(s);
+
+    // Change le message selon l'avancement
+    const elapsed = TOTAL_SECONDS - remaining;
+    const msg = [...MESSAGES].reverse().find(m => elapsed >= m.at);
+    if(msg && msgEl.textContent !== msg.text){
+      msgEl.style.opacity = '0';
+      setTimeout(()=>{ msgEl.textContent = msg.text; msgEl.style.opacity = '1'; }, 300);
+    }
+
+    if(remaining <= 0){
+      // 6 minutes écoulées → redirection vers la page de confirmation
+      // (plus tard, ce sera le webhook qui déclenchera cette redirection)
+      window.location.href = 'confirmation.html?order=' + encodeURIComponent(orderNo);
+      return;
+    }
+
+    remaining--;
+    setTimeout(tick, 1000);
+  }
+
+  // Lance le timer au chargement
+  tick();
+</script>
+
+</body>
+</html>
