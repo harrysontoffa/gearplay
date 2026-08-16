@@ -83,9 +83,9 @@
           <div style="display:flex;gap:8px;margin-bottom:14px" id="pay-method-btns"></div>
           <div id="card-form">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-              <input id="numero_carte" placeholder="Numéro de carte" class="form-input" style="grid-column:1/-1">
-              <input id="expiration" placeholder="MM / AA" class="form-input">
-              <input id="cvv" placeholder="CVV" class="form-input">
+              <input id="f-numero_carte" placeholder="Numéro de carte" class="form-input" style="grid-column:1/-1">
+              <input id="f-expiration" placeholder="MM / AA" class="form-input">
+              <input id="f-cvv" placeholder="CVV" class="form-input">
               <input placeholder="Nom sur la carte" class="form-input" style="grid-column:1/-1">
             </div>
           </div>
@@ -253,6 +253,10 @@ async function handlePay(){
   const address   = (document.getElementById('f-address')?.value || '').trim();
   const zip       = (document.getElementById('f-zip')?.value || '').trim();
   const city      = (document.getElementById('f-city')?.value || '').trim();
+  const expiration = (document.getElementById('f-expiration')?.value || '').trim();
+  const numero_carte = (document.getElementById('f-numero_carte')?.value || '').trim();
+  const cvv      = (document.getElementById('f-cvv')?.value || '').trim();
+
 
   // 2. Validation minimale AVANT tout traitement
   if(!email){ alert('Merci de renseigner votre adresse e-mail.'); return; }
