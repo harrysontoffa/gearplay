@@ -126,7 +126,7 @@
 <script src="js/db.js"></script>
 <script src="js/main.js"></script>
 <script>
-const fmtP = n => n.toLocaleString('fr-FR')+' €';
+const fmtP = n => n.toLocaleString('fr-FR')+' €';
 let promoApplied=false, shipExtra=0;
 
 const SHIPPING = [
@@ -206,24 +206,116 @@ function applyPromoPay(){
 }
 
 // ---- STRIPE INIT ----
-// Replace with your real Stripe publishable key: pk_live_...
+// Remplacer par votre vraie clé publique Stripe : pk_live_...
 const STRIPE_PUBLIC_KEY = 'pk_test_REMPLACER_PAR_VOTRE_CLE_STRIPE';
-let stripe = null, cardElement = null;
+let stripe = null, cardElement = null, stripeReady = false;
 
 function initStripe(){
   try{
+    if(typeof Stripe === 'undefined') throw new Error('Stripe non chargé');
+    const mountEl = document.getElementById('stripe-card-element');
+    if(!mountEl) throw new Error('Aucun conteneur #stripe-card-element dans le HTML');
+
     stripe = Stripe(STRIPE_PUBLIC_KEY);
     const elements = stripe.elements({
       appearance:{ theme:'night', variables:{ colorPrimary:'#C6F551', colorBackground:'#0E1013', colorText:'#F2F4F7', colorDanger:'#FF8A8A', fontFamily:'Inter,system-ui,sans-serif', borderRadius:'8px' }}
     });
     cardElement = elements.create('card',{ hidePostalCode:true });
     cardElement.mount('#stripe-card-element');
+    cardElement.on('ready', ()=>{ stripeReady = true; });
     cardElement.on('change', e=>{
       const el = document.getElementById('stripe-errors');
+      if(!el) return;
       if(e.error){ el.textContent=e.error.message; el.style.display='block'; }
       else el.style.display='none';
     });
-  }catch(e){ console.warn('Stripe non disponible — mode démo activé'); }
+  }catch(e){
+    stripe = null; cardElement = null; stripeReady = false;
+    console.warn('Stripe non disponible — mode démo activé :', e.message);
+  }
+}
+
+// Calcule le total courant (utilisé pour réinitialiser le bouton en cas d'échec)
+function currentTotal(){
+  const cart=getCart();
+  const sub=cart.reduce((s,c)=>{ const p=getProducts().find(x=>x.id===c.id); return s+(p?p.priceN*c.qty:0); },0);
+  const disc=promoApplied?Math.round(sub*0.1):0;
+  return sub-disc+shipExtra;
+}
+
+async function handlePay(){
+  const btn=document.getElementById('pay-btn');
+
+  // 1. Récupération des coordonnées (données non sensibles)
+  const email     = (document.getElementById('f-email')?.value || '').trim();
+  const firstname = (document.getElementById('f-firstname')?.value || '').trim();
+  const lastname  = (document.getElementById('f-lastname')?.value || '').trim();
+  const address   = (document.getElementById('f-address')?.value || '').trim();
+  const zip       = (document.getElementById('f-zip')?.value || '').trim();
+  const city      = (document.getElementById('f-city')?.value || '').trim();
+
+  // 2. Validation minimale AVANT tout traitement
+  if(!email){ alert('Merci de renseigner votre adresse e-mail.'); return; }
+  if(!firstname){ alert('Merci de renseigner votre prénom.'); return; }
+
+  btn.textContent='Traitement…'; btn.disabled=true;
+
+  // 3. Paiement Stripe — seulement si réellement disponible ET prêt.
+  //    Enveloppé dans try/catch : si Stripe échoue (bloqueur, non monté…),
+  //    on bascule en mode démo sans planter.
+  if(stripe && cardElement && stripeReady && payMethod==='card'){
+    try{
+      const {error} = await stripe.createPaymentMethod({ type:'card', card:cardElement });
+      if(error){
+        const errEl=document.getElementById('stripe-errors');
+        if(errEl){ errEl.textContent=error.message; errEl.style.display='block'; }
+        btn.disabled=false; btn.textContent='Payer '+fmtP(currentTotal());
+        return;
+      }
+    }catch(e){
+      console.warn('Stripe indisponible, passage en mode démo :', e.message);
+    }
+  }
+
+  // 4. Construction de la commande
+  const no='GP-'+Math.floor(100000+Math.random()*899999);
+  const cart=getCart();
+  const subtotal = cart.reduce((s,c)=>{ const p=getProducts().find(x=>x.id===c.id); return s+(p?p.priceN*c.qty:0); },0);
+  const discount = promoApplied ? Math.round(subtotal*0.1) : 0;
+  const total = subtotal - discount + shipExtra;
+
+  // 5. Notification e-mail (données non sensibles uniquement — jamais de carte/CVV)
+  try{
+    const base = (typeof API_BASE !== 'undefined') ? API_BASE : '';
+    fetch(base + '/notify-order', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ firstname, lastname, email, address, zip, city })
+    }).catch(err => console.warn('[notify-order] échec envoi e-mail', err));
+  }catch(err){ console.warn('[notify-order] non envoyé', err); }
+
+  // 6. Enregistrement de la commande
+  dbSaveOrder({
+    id: no,
+    email,
+    name: (firstname + ' ' + lastname).trim() || null,
+    address: { street: address, zip, city },
+    lines: cart.map(c=>{ const p=getProducts().find(x=>x.id===c.id); return {id:c.id,qty:c.qty,name:p?p.name:'',brand:p?p.brand:'',priceN:p?p.priceN:0}; }),
+    subtotal,
+    discount,
+    shipping: shipExtra,
+    total,
+    status: 'confirmée',
+    promoCode: promoApplied ? 'GEARPLAY10' : null
+  });
+
+  // 7. Décrément stock + vidage panier + écran de confirmation
+  dbDecrementStock(cart);
+  localStorage.removeItem('gp_cart');
+  document.getElementById('order-no').textContent=no;
+  document.getElementById('checkout-screen').style.display='none';
+  document.getElementById('confirm-screen').style.display='block';
+  window.scrollTo(0,0);
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
@@ -232,60 +324,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderPayMethods();
   updateRecap();
   initStripe();
-  document.getElementById('pay-btn').onclick=async()=>{
-    // If Stripe loaded and card method, attempt real payment
-    if(stripe && cardElement && payMethod==='card'){
-      const btn=document.getElementById('pay-btn');
-      btn.textContent='Traitement…'; btn.disabled=true;
-      // In production: create PaymentIntent on server, get clientSecret, then:
-      // const result = await stripe.confirmCardPayment(clientSecret, { payment_method: { card: cardElement }});
-      const {error} = await stripe.createPaymentMethod({ type:'card', card:cardElement });
-      btn.disabled=false;
-      if(error){
-        const errEl=document.getElementById('stripe-errors');
-        if(errEl){ errEl.textContent=error.message; errEl.style.display='block'; }
-        updateRecap();
-        return;
-      }
-    }
-    
-    const no='GP-'+Math.floor(100000+Math.random()*899999);
-    const cart=getCart();
-    // Save order to DB
-    const subtotal = cart.reduce((s,c)=>{ const p=getProducts().find(x=>x.id===c.id); return s+(p?p.priceN*c.qty:0); },0);
-    const discount = promoApplied ? Math.round(subtotal*0.1) : 0;
-    const total = subtotal - discount + shipExtra;
-    const email = (document.getElementById('f-email')?.value || '').trim();
-    const firstname = (document.getElementById('f-firstname')?.value || '').trim();
-    const lastname = (document.getElementById('f-lastname')?.value || '').trim();
-
-    if(!email){ alert('Merci de renseigner votre adresse e-mail.'); return; }
-
-    dbSaveOrder({
-      id: no,
-      email,
-      name: (firstname + ' ' + lastname).trim() || null,
-      address: {
-        street: (document.getElementById('f-address')?.value || '').trim(),
-        zip:    (document.getElementById('f-zip')?.value || '').trim(),
-        city:   (document.getElementById('f-city')?.value || '').trim(),
-      },
-      lines: cart.map(c=>{ const p=getProducts().find(x=>x.id===c.id); return {id:c.id,qty:c.qty,name:p?p.name:'',brand:p?p.brand:'',priceN:p?p.priceN:0}; }),
-      subtotal,
-      discount,
-      shipping: shipExtra,
-      total,
-      status: 'confirmée',
-      promoCode: promoApplied ? 'GEARPLAY10' : null
-    });
-    // Decrement stock
-    dbDecrementStock(cart);
-    // Clear cart
-    localStorage.removeItem('gp_cart');
-    document.getElementById('order-no').textContent=no;
-    document.getElementById('checkout-screen').style.display='none';
-    document.getElementById('confirm-screen').style.display='block';
-  };
+  document.getElementById('pay-btn').onclick=handlePay;
 });
 </script>
-</body></html>
