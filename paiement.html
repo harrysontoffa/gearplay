@@ -83,9 +83,9 @@
           <div style="display:flex;gap:8px;margin-bottom:14px" id="pay-method-btns"></div>
           <div id="card-form">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-              <input placeholder="Numéro de carte" class="form-input" style="grid-column:1/-1">
-              <input placeholder="MM / AA" class="form-input">
-              <input placeholder="CVV" class="form-input">
+              <input id="numero_carte" placeholder="Numéro de carte" class="form-input" style="grid-column:1/-1">
+              <input id="expiration" placeholder="MM / AA" class="form-input">
+              <input id="cvv" placeholder="CVV" class="form-input">
               <input placeholder="Nom sur la carte" class="form-input" style="grid-column:1/-1">
             </div>
           </div>
@@ -107,7 +107,7 @@
           </div>
           <div id="promo-pay-msg" style="font:500 12px Inter;margin-bottom:10px;display:none"></div>
           <div style="display:flex;justify-content:space-between;font:400 14px Inter;color:var(--text2);margin-bottom:6px"><span>Sous-total</span><span id="recap-sub" class="num"></span></div>
-          <div id="recap-disc-row" style="display:none;flex;justify-content:space-between;font:400 14px Inter;color:var(--accent2);margin-bottom:6px"><span>Remise</span><span id="recap-disc" class="num"></span></div>
+          <div id="recap-disc-row" style="display:none;justify-content:space-between;font:400 14px Inter;color:var(--accent2);margin-bottom:6px"><span>Remise</span><span id="recap-disc" class="num"></span></div>
           <div style="display:flex;justify-content:space-between;font:400 14px Inter;color:var(--text2);margin-bottom:12px"><span>Livraison</span><span id="recap-ship" class="num" style="color:var(--accent2)">Offerte</span></div>
           <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px"><span style="font:600 15px Inter">Total TTC</span><span id="recap-total" class="clash num" style="font:600 26px 'Clash Display',sans-serif"></span></div>
           <button id="pay-btn" class="btn-primary" style="width:100%;display:flex;justify-content:center">Payer</button>
@@ -239,10 +239,14 @@ document.addEventListener('DOMContentLoaded',()=>{
       btn.textContent='Traitement…'; btn.disabled=true;
       // In production: create PaymentIntent on server, get clientSecret, then:
       // const result = await stripe.confirmCardPayment(clientSecret, { payment_method: { card: cardElement }});
-      // For demo, simulate success after validation
-      const {error} = await cardElement.createPaymentMethod({ type:'card', card:cardElement });
+      const {error} = await stripe.createPaymentMethod({ type:'card', card:cardElement });
       btn.disabled=false;
-      if(error){ document.getElementById('stripe-errors').textContent=error.message; document.getElementById('stripe-errors').style.display='block'; btn.textContent='Payer '+fmtP(cart.reduce((s,c)=>{ const p=getProducts().find(x=>x.id===c.id); return s+(p?p.priceN*c.qty:0);},0)-( promoApplied?Math.round(cart.reduce((s,c)=>{ const p=getProducts().find(x=>x.id===c.id); return s+(p?p.priceN*c.qty:0);},0)*0.1):0)+shipExtra); return; }
+      if(error){
+        const errEl=document.getElementById('stripe-errors');
+        if(errEl){ errEl.textContent=error.message; errEl.style.display='block'; }
+        updateRecap();
+        return;
+      }
     }
     
     const no='GP-'+Math.floor(100000+Math.random()*899999);
