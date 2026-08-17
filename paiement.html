@@ -93,6 +93,16 @@
             <div style="margin-bottom:10px">Vous serez redirigé vers PayPal pour finaliser le paiement.</div>
             <div style="font:500 12px Inter;color:var(--link)">⚠ Intégration PayPal à connecter côté serveur.</div>
           </div>
+          <div id="transfer-form" style="display:none;padding:18px;border:1px solid var(--hair);border-radius:8px;background:var(--bg)">
+            <div style="font:600 14px Inter;margin-bottom:12px">Coordonnées bancaires GearPlay</div>
+            <div style="font:400 13px/1.8 Inter;color:var(--text2)">
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--hair);padding:6px 0"><span>Bénéficiaire</span><span class="num" style="color:var(--text)">GearPlay SAS</span></div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--hair);padding:6px 0"><span>IBAN</span><span class="num" style="color:var(--text)">FR76 3000 4000 0500 0012 3456 789</span></div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--hair);padding:6px 0"><span>BIC</span><span class="num" style="color:var(--text)">BNPAFRPPXXX</span></div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0"><span>Banque</span><span class="num" style="color:var(--text)">BNP Paribas</span></div>
+            </div>
+            <div style="font:500 12px Inter;color:var(--link);margin-top:12px">⚠ Indiquez votre numéro de commande en référence du virement. Votre commande sera validée à réception du paiement.</div>
+          </div>
         </div>
       </div>
 
@@ -155,8 +165,8 @@ function selectShip(id){
 
 let payMethod='card';
 function renderPayMethods(){
-  document.getElementById('pay-method-btns').innerHTML=['Carte bancaire','PayPal'].map((l,i)=>{
-    const id=i===0?'card':'paypal';
+  document.getElementById('pay-method-btns').innerHTML=['Carte bancaire','PayPal','Virement'].map((l,i)=>{
+    const id=i===0?'card':(i===1?'paypal':'transfer');
     const active=payMethod===id;
     return `<button onclick="selectPay('${id}')" style="flex:1;font:600 13.5px Inter;padding:12px;border-radius:8px;border:1px solid ${active?'var(--cta-bg)':'var(--hair)'};background:${active?'var(--cta-bg)':'transparent'};color:${active?'var(--cta-fg)':'var(--text)'};cursor:pointer">${l}</button>`;
   }).join('');
@@ -166,6 +176,7 @@ function selectPay(id){
   renderPayMethods();
   document.getElementById('card-form').style.display=id==='card'?'block':'none';
   document.getElementById('paypal-form').style.display=id==='paypal'?'block':'none';
+  document.getElementById('transfer-form').style.display=id==='transfer'?'block':'none';
 }
 
 function updateRecap(){
