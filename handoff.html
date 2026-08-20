@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Handoff Backend — GearPlay Store</title>
+<title>Handoff Backend — Cortex Play Store</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>doc-page:not(:defined){visibility:hidden}</style>
@@ -48,7 +48,7 @@
   </div>
 
   <div class="box info">
-    <strong>À qui s'adresse ce document ?</strong> Au développeur backend ou à l'hébergeur chargé de mettre en production le site GearPlay Store. Ce document liste toutes les tâches restantes côté serveur, avec les spécifications techniques exactes à implémenter.
+    <strong>À qui s'adresse ce document ?</strong> Au développeur backend ou à l'hébergeur chargé de mettre en production le site Cortex Play Store. Ce document liste toutes les tâches restantes côté serveur, avec les spécifications techniques exactes à implémenter.
   </div>
 
   <h2>1. État actuel du projet</h2>
@@ -241,7 +241,7 @@
     <tr><td><span class="tag yellow">Important</span></td><td>Configurer le webhook Stripe</td><td>Dev Backend</td></tr>
     <tr><td><span class="tag gray">Recommandé</span></td><td>Configurer Google Analytics / Plausible</td><td>Client</td></tr>
     <tr><td><span class="tag gray">Recommandé</span></td><td>Mettre en place les sauvegardes DB automatiques</td><td>Dev Backend</td></tr>
-    <tr><td><span class="tag gray">Recommandé</span></td><td>Déposer le nom de domaine gearplay.fr</td><td>Client</td></tr>
+    <tr><td><span class="tag gray">Recommandé</span></td><td>Déposer le nom de domaine cortexplay.fr</td><td>Client</td></tr>
   </table>
 
   <hr class="divider">
@@ -256,21 +256,21 @@
     DATABASE_URL=postgresql://user:pass@host:5432/gearplay<br><br>
     # Email Brevo<br>
     BREVO_API_KEY=xkeysib-…<br>
-    EMAIL_FROM=contact@gearplay.fr<br><br>
+    EMAIL_FROM=contact@cortexplay.fr<br><br>
     # Sécurité<br>
     JWT_SECRET=une_chaine_aleatoire_longue_et_securisee<br>
     JWT_EXPIRES_IN=8h<br><br>
     # App<br>
     NODE_ENV=production<br>
     PORT=3000<br>
-    FRONTEND_URL=https://gearplay.fr
+    FRONTEND_URL=https://cortexplay.fr
   </div>
 
   <hr class="divider">
 
   <div style="text-align:center;padding:20px 0;color:#6b7280;font-size:12px">
-    <strong style="color:#111">GearPlay Store</strong> · Document confidentiel · Préparé en août 2026<br>
-    Questions : contact@gearplay.fr
+    <strong style="color:#111">Cortex Play Store</strong> · Document confidentiel · Préparé en août 2026<br>
+    Questions : contact@cortexplay.fr
   </div>
 
 </doc-page>

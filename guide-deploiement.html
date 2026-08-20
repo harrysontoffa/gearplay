@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Guide de déploiement — GearPlay Store</title>
+<title>Guide de déploiement — Cortex Play Store</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>doc-page:not(:defined){visibility:hidden}</style>
@@ -48,14 +48,14 @@
 
   <!-- COVER -->
   <div style="text-align:center;padding:36px 0 28px">
-    <div class="logo">Gear<span>Play</span> Store</div>
+    <div class="logo">Cortex<span>Play</span> Store</div>
     <div style="font-size:24px;font-weight:700;margin:16px 0 6px;color:#0f172a">Guide de déploiement complet</div>
     <div class="meta">Environnement Docker · Prisma · PostgreSQL · Node.js</div>
     <div class="meta">Version 1.0 · Août 2026 · Document technique pas-à-pas</div>
   </div>
 
   <div class="box info">
-    <strong>Objectif de ce document.</strong> Vous guider, étape par étape, pour transformer le site GearPlay (actuellement en localStorage) en une vraie boutique en ligne avec base de données PostgreSQL, API backend et déploiement Docker. Aucune connaissance préalable de Docker ou Prisma n'est supposée : chaque commande est expliquée.
+    <strong>Objectif de ce document.</strong> Vous guider, étape par étape, pour transformer le site Cortex Play (actuellement en localStorage) en une vraie boutique en ligne avec base de données PostgreSQL, API backend et déploiement Docker. Aucune connaissance préalable de Docker ou Prisma n'est supposée : chaque commande est expliquée.
   </div>
 
   <h2>1. Vue d'ensemble de l'architecture</h2>
@@ -275,7 +275,7 @@ module.exports = router;</pre>
 
   <h2>9. Connecter le frontend au backend</h2>
   <p>Actuellement, <code>js/db.js</code> lit dans localStorage. Il faut le faire lire dans l'API. Remplacez les fonctions par des appels <code>fetch</code> :</p>
-  <pre><span class="k">const</span> API = <span class="s">'http://localhost:3000/api'</span>; <span class="c">// en prod : https://api.gearplay.fr/api</span>
+  <pre><span class="k">const</span> API = <span class="s">'http://localhost:3000/api'</span>; <span class="c">// en prod : https://api.cortexplay.fr/api</span>
 
 <span class="k">async function</span> <span class="fn">dbGet</span>(){
   <span class="k">const</span> r = <span class="k">await</span> fetch(API + <span class="s">'/products'</span>);
@@ -295,7 +295,7 @@ module.exports = router;</pre>
     <tr><th>Élément</th><th>Où l'héberger</th><th>Comment</th></tr>
     <tr><td>Frontend</td><td>Netlify / Vercel</td><td>Glisser-déposer le dossier <code>gearplay/</code></td></tr>
     <tr><td>Backend + DB</td><td>Railway / Render</td><td>Connecter le repo Git, ils détectent le <code>docker-compose</code></td></tr>
-    <tr><td>Nom de domaine</td><td>OVH / Gandi</td><td>Pointer <code>gearplay.fr</code> → Netlify, <code>api.gearplay.fr</code> → Railway</td></tr>
+    <tr><td>Nom de domaine</td><td>OVH / Gandi</td><td>Pointer <code>cortexplay.fr</code> → Netlify, <code>api.cortexplay.fr</code> → Railway</td></tr>
     <tr><td>SSL (HTTPS)</td><td>Automatique</td><td>Fourni gratuitement par Netlify et Railway</td></tr>
   </table>
   <h4>Étapes de publication</h4>
@@ -322,12 +322,12 @@ STRIPE_WEBHOOK_SECRET="whsec_..."
 
 <span class="c"># Email Brevo</span>
 BREVO_API_KEY="xkeysib-..."
-EMAIL_FROM="contact@gearplay.fr"
+EMAIL_FROM="contact@cortexplay.fr"
 
 <span class="c"># Général</span>
 NODE_ENV="production"
 PORT=3000
-FRONTEND_URL="https://gearplay.fr"</pre>
+FRONTEND_URL="https://cortexplay.fr"</pre>
 
   <h2>12. Checklist finale avant lancement</h2>
   <table>
@@ -350,8 +350,8 @@ FRONTEND_URL="https://gearplay.fr"</pre>
 
   <hr class="divider">
   <div style="text-align:center;padding:16px 0;color:#64748b;font-size:11.5px">
-    <strong style="color:#0f172a">GearPlay Store</strong> · Guide de déploiement · Août 2026<br>
-    Généré pour accompagner la mise en production · contact@gearplay.fr
+    <strong style="color:#0f172a">Cortex Play Store</strong> · Guide de déploiement · Août 2026<br>
+    Généré pour accompagner la mise en production · contact@cortexplay.fr
   </div>
 
 </doc-page>

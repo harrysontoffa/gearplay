@@ -1,7 +1,7 @@
 
 const CATALOG = [
   {
-    id:'ctrl-edge', brand:'GearPlay', cat:'Manettes', model:'controller',
+    id:'ctrl-edge', brand:'Cortex Play', cat:'Manettes', model:'controller',
     name:'Manette Pro sans fil Edge', priceN:179, oldN:219, off:18,
     rating:4.9, reviews:1240, inStock:true, stockN:42,
     desc:"Manette haut de gamme à faible latence : gâchettes à course réglable, palettes arrière programmables et autonomie de 40 heures. Personnalisez le coloris et visualisez-le en temps réel.",

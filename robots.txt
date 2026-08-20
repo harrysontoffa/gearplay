@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin.html
 Disallow: /login.html
 
-Sitemap: https://gearplay.fr/sitemap.xml
+Sitemap: https://cortexplay.fr/sitemap.xml
